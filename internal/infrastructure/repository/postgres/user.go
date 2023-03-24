@@ -18,18 +18,18 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 
 func (ur *UserRepo) Create(ctx context.Context, req dto.UserRequestSignUpBody) error {
 	query1 := `
-		INSERT INTO users(name, surname, patronymic, email, phone_number, hash_password)
+		INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
 		VALUES($1, $2, $3, $4, $5, $6) 
 		RETURNING id
 	`
 	lastInsertID := 0
-	err := ur.QueryRowContext(ctx, query1, req.Name, req.Surname, req.Patronymic, req.Email, req.PhoneNumber, req.Password).Scan(&lastInsertID)
+	err := ur.QueryRowContext(ctx, query1, req.Surname, req.Name, req.Patronymic, req.Email, req.PhoneNumber, req.Password).Scan(&lastInsertID)
 	if err != nil {
 		return err
 	}
 
 	query2 := `
-		INSERT INTO meta(userr_id, is_courier)
+		INSERT INTO meta(user_id, is_courier)
 		VALUES($1, $2)
 	`
 	result, err := ur.ExecContext(ctx, query2, lastInsertID, req.IsCourier)
@@ -45,4 +45,52 @@ func (ur *UserRepo) Create(ctx context.Context, req dto.UserRequestSignUpBody) e
 	}
 
 	return nil
+}
+
+func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserResponseMeBody, error) {
+	query := `
+		SELECT id, surname, name, patronymic, email, phone_number, created_at
+		FROM users
+		WHERE id=$1
+	`
+	row := ur.QueryRowContext(ctx, query, id)
+
+	resp := &dto.UserResponseMeBody{}
+	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserResponseInfoBody, error) {
+	query := `
+		SELECT id, email, hash_password
+		FROM users
+		WHERE id=$1
+	`
+	row := ur.QueryRowContext(ctx, query, id)
+
+	resp := &dto.UserResponseInfoBody{}
+	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserResponseInfoBody, error) {
+	query := `
+		SELECT id, email, hash_password
+		FROM users
+		WHERE email=$1
+	`
+	row := ur.QueryRowContext(ctx, query, email)
+
+	resp := &dto.UserResponseInfoBody{}
+	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
