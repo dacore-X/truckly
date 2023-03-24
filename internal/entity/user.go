@@ -1,0 +1,14 @@
+package entity
+
+import "time"
+
+type User struct {
+	ID          int64     `json:"id"`
+	Surname     string    `json:"surname"`
+	Name        string    `json:"name"`
+	Patronymic  string    `json:"patronymic"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phone_number"`
+	Password    string    `json:"password"`
+	CreatedAt   time.Time `json:"created_at"`
+}
