@@ -12,20 +12,14 @@ import (
 
 	"github.com/dacore-x/truckly/internal/dto"
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
+	"github.com/dacore-x/truckly/internal/usecase"
 )
 
-type UserUseCase interface {
-	Create(context.Context, dto.UserRequestSignUpBody) error
-	GetMe(context.Context, int64) (*dto.UserResponseMeBody, error)
-	GetByID(context.Context, int64) (*dto.UserResponseInfoBody, error)
-	GetByEmail(context.Context, string) (*dto.UserResponseInfoBody, error)
-}
-
 type userHandlers struct {
-	UserUseCase
+	usecase.User
 }
 
-func newUserHandlers(superGroup *gin.RouterGroup, u UserUseCase, m middleware.Middlewares) {
+func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m middleware.Middlewares) {
 	handler := &userHandlers{u}
 
 	userGroup := superGroup.Group("/user")

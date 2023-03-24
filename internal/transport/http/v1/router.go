@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
+	"github.com/dacore-x/truckly/internal/usecase"
 )
 
 type Handlers struct {
@@ -11,7 +12,7 @@ type Handlers struct {
 	middleware.Middlewares
 }
 
-func NewHandlers(u UserUseCase) *Handlers {
+func NewHandlers(u usecase.User) *Handlers {
 	return &Handlers{
 		userHandlers{u},
 		middleware.Middlewares{},
