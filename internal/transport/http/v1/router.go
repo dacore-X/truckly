@@ -7,6 +7,8 @@ import (
 	"github.com/dacore-x/truckly/internal/usecase"
 )
 
+// Handlers is a struct that provides
+// all entities' handlers and middlewares
 type Handlers struct {
 	userHandlers
 	middleware.Middlewares
@@ -19,6 +21,7 @@ func NewHandlers(u usecase.User) *Handlers {
 	}
 }
 
+// NewRouter initializes a group of all entities' routes
 func (h *Handlers) NewRouter(r *gin.Engine) {
 	// All entities' routes
 	superGroup := r.Group("/api")

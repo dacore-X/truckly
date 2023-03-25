@@ -15,10 +15,13 @@ import (
 	"github.com/dacore-x/truckly/internal/usecase"
 )
 
+// userHandlers is a non-exportable struct
+// that provides user-related handlers
 type userHandlers struct {
 	usecase.User
 }
 
+// newUserHandlers initializes a group of user's routes
 func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m middleware.Middlewares) {
 	handler := &userHandlers{u}
 
@@ -29,9 +32,11 @@ func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m middleware.M
 	}
 }
 
+// signUp handler creates new user account
+// based on request body data with password hashing
 func (h *userHandlers) signUp(c *gin.Context) {
 	// Get params from req body
-	var body dto.UserRequestSignUpBody
+	var body dto.UserSignUpRequestBody
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to read body",
@@ -63,9 +68,12 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	})
 }
 
+// login handler checks if user has an account
+// based on request body data, creates new jwt token
+// and stores it in cookie
 func (h *userHandlers) login(c *gin.Context) {
 	// Get params from req body
-	var body dto.UserRequestLoginBody
+	var body dto.UserLoginRequestBody
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to read body",

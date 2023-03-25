@@ -7,19 +7,19 @@ import (
 )
 
 type (
-	// UseCase User interface
+	// User interface represents user's usecases
 	User interface {
-		Create(context.Context, dto.UserRequestSignUpBody) error
-		GetMe(context.Context, int64) (*dto.UserResponseMeBody, error)
-		GetByID(context.Context, int64) (*dto.UserResponseInfoBody, error)
-		GetByEmail(context.Context, string) (*dto.UserResponseInfoBody, error)
+		Create(context.Context, dto.UserSignUpRequestBody) error
+		GetMe(context.Context, int64) (*dto.UserMeResponse, error)
+		GetByID(context.Context, int64) (*dto.UserInfoResponse, error)
+		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
 	}
 
-	// Repository User interface
+	// UserRepo interface represents user's repository contract
 	UserRepo interface {
-		Create(context.Context, dto.UserRequestSignUpBody) error
-		GetMe(context.Context, int64) (*dto.UserResponseMeBody, error)
-		GetByID(context.Context, int64) (*dto.UserResponseInfoBody, error)
-		GetByEmail(context.Context, string) (*dto.UserResponseInfoBody, error)
+		Create(context.Context, dto.UserSignUpRequestBody) error
+		GetMe(context.Context, int64) (*dto.UserMeResponse, error)
+		GetByID(context.Context, int64) (*dto.UserInfoResponse, error)
+		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
 	}
 )

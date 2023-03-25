@@ -14,10 +14,15 @@ import (
 	"github.com/dacore-x/truckly/internal/usecase"
 )
 
+// userMiddlewares is a non-exportable struct
+// that provides user-related middlewares
 type userMiddlewares struct {
 	usecase.User
 }
 
+// RequireAuth middleware checks if user is authenticated
+// by decoding and validating user's jwt token and attaches
+// private user's data to the request
 func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 	// Get cookie from request
 	tokenString, err := c.Cookie("Authorization")
