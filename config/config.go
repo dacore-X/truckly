@@ -7,7 +7,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-
 // PG is a struct for storing Postgres connection settings
 type PG struct {
 	PostgresUser     string
@@ -25,11 +24,12 @@ type GEO struct {
 	// Base URLS for 2GIS
 	BaseURLCatalog string
 	BaseURLRouting string
+}
 
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
-  *GEO
+	*GEO
 }
 
 // New returns application config
@@ -37,7 +37,7 @@ func New() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, err
-}
+	}
 
 	user, ok := os.LookupEnv("POSTGRES_USER")
 	if !ok {
