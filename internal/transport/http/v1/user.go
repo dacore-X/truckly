@@ -22,14 +22,50 @@ type userHandlers struct {
 }
 
 // newUserHandlers initializes a group of user's routes
-func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m middleware.Middlewares) {
+func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m *middleware.Middlewares) {
 	handler := &userHandlers{u}
 
 	userGroup := superGroup.Group("/user")
 	{
+		userGroup.GET("/me", m.RequireAuth, handler.me)
 		userGroup.POST("/signup", handler.signUp)
 		userGroup.POST("/login", handler.login)
 	}
+
+}
+
+// me handler gets user's account data based on
+// private user's data from "user" context key
+func (h *userHandlers) me(c *gin.Context) {
+	// Check user authorization
+	authUserKey, _ := c.Get("user")
+	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user must be authorized",
+		})
+	}
+	req := authUserKey.(*dto.UserInfoResponse)
+
+	// Look up user in DB
+	user, err := h.GetMe(context.Background(), req.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	// Fill response body with user's account data
+	resp := dto.UserMeResponse{
+		ID:          user.ID,
+		Surname:     user.Surname,
+		Name:        user.Name,
+		Patronymic:  user.Patronymic,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		CreatedAt:   user.CreatedAt,
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 // signUp handler creates new user account

@@ -43,9 +43,9 @@ func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 		errors.Is(err, jwt.ErrTokenExpired) ||
 		errors.Is(err, jwt.ErrTokenNotValidYet) {
 	} else {
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			// Check the exp
-			if float64(time.Now().Unix()) > claims["sub"].(float64) {
+			if float64(time.Now().Unix()) > claims["exp"].(float64) {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
