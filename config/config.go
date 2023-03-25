@@ -7,17 +7,29 @@ import (
 	"github.com/joho/godotenv"
 )
 
+
 // PG is a struct for storing Postgres connection settings
 type PG struct {
-	POSTGRES_USER     string
-	POSTGRES_PASSWORD string
-	POSTGRES_NAME     string
-	POSTGRES_PORT     string
+	PostgresUser     string
+	PostgresPassword string
+	PostgresName     string
+	PostgresPort     string
 }
+
+// GEO is a struct for storing API Keys and Base URLS for 2GIS
+type GEO struct {
+	// API Keys for 2GIS
+	APIKeyCatalog string
+	APIKeyRouting string
+
+	// Base URLS for 2GIS
+	BaseURLCatalog string
+	BaseURLRouting string
 
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
+  *GEO
 }
 
 // New returns application config
@@ -25,7 +37,7 @@ func New() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, err
-	}
+}
 
 	user, ok := os.LookupEnv("POSTGRES_USER")
 	if !ok {
@@ -34,7 +46,7 @@ func New() (*Config, error) {
 
 	password, ok := os.LookupEnv("POSTGRES_PASSWORD")
 	if !ok {
-		return nil, errors.New("POSTGRES_USER is not set")
+		return nil, errors.New("POSTGRES_PASSWORD is not set")
 	}
 
 	name, ok := os.LookupEnv("POSTGRES_NAME")
@@ -47,12 +59,38 @@ func New() (*Config, error) {
 		return nil, errors.New("POSTGRES_PORT is not set")
 	}
 
+	apiKeyCatalog, ok := os.LookupEnv("API_KEY_CATALOG")
+	if !ok {
+		return nil, errors.New("API_KEY_CATALOG is not set")
+	}
+
+	apiKeyRouting, ok := os.LookupEnv("API_KEY_NAVIGATION")
+	if !ok {
+		return nil, errors.New("API_KEY_NAVIGATION is not set")
+	}
+
+	baseURLCatalog, ok := os.LookupEnv("BASE_URL_CATALOG")
+	if !ok {
+		return nil, errors.New("BASE_URL_CATALOG is not set")
+	}
+
+	baseURLRouting, ok := os.LookupEnv("BASE_URL_ROUTING")
+	if !ok {
+		return nil, errors.New("BASE_URL_ROUTING is not set")
+	}
 	return &Config{
 		PG: &PG{
-			POSTGRES_USER:     user,
-			POSTGRES_PASSWORD: password,
-			POSTGRES_NAME:     name,
-			POSTGRES_PORT:     port,
+			PostgresUser:     user,
+			PostgresPassword: password,
+			PostgresName:     name,
+			PostgresPort:     port,
+		},
+		GEO: &GEO{
+			APIKeyCatalog: apiKeyCatalog,
+			APIKeyRouting: apiKeyRouting,
+
+			BaseURLCatalog: baseURLCatalog,
+			BaseURLRouting: baseURLRouting,
 		},
 	}, nil
 }
