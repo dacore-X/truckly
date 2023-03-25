@@ -6,13 +6,8 @@ import (
 	"github.com/dacore-x/truckly/internal/dto"
 )
 
-type UserRepo interface {
-	Create(context.Context, dto.UserRequestSignUpBody) error
-	GetMe(context.Context, int64) (*dto.UserResponseMeBody, error)
-	GetByID(context.Context, int64) (*dto.UserResponseInfoBody, error)
-	GetByEmail(context.Context, string) (*dto.UserResponseInfoBody, error)
-}
-
+// UserUseCase is a struct that provides
+// all user's usecases
 type UserUseCase struct {
 	repo UserRepo
 }
@@ -21,7 +16,8 @@ func NewUserUseCase(r UserRepo) *UserUseCase {
 	return &UserUseCase{repo: r}
 }
 
-func (uc *UserUseCase) Create(ctx context.Context, req dto.UserRequestSignUpBody) error {
+// Create usecase creates new user account
+func (uc *UserUseCase) Create(ctx context.Context, req dto.UserSignUpRequestBody) error {
 	err := uc.repo.Create(ctx, req)
 	if err != nil {
 		return err
@@ -29,7 +25,8 @@ func (uc *UserUseCase) Create(ctx context.Context, req dto.UserRequestSignUpBody
 	return nil
 }
 
-func (uc *UserUseCase) GetMe(ctx context.Context, id int64) (*dto.UserResponseMeBody, error) {
+// GetMe usecase gets user's account data from storage based on user's id
+func (uc *UserUseCase) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse, error) {
 	resp, err := uc.repo.GetMe(ctx, id)
 	if err != nil {
 		return nil, err
@@ -37,7 +34,8 @@ func (uc *UserUseCase) GetMe(ctx context.Context, id int64) (*dto.UserResponseMe
 	return resp, nil
 }
 
-func (uc *UserUseCase) GetByID(ctx context.Context, id int64) (*dto.UserResponseInfoBody, error) {
+// GetByID usecase gets private user's data from storage based on user's id
+func (uc *UserUseCase) GetByID(ctx context.Context, id int64) (*dto.UserInfoResponse, error) {
 	resp, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -45,7 +43,8 @@ func (uc *UserUseCase) GetByID(ctx context.Context, id int64) (*dto.UserResponse
 	return resp, nil
 }
 
-func (uc *UserUseCase) GetByEmail(ctx context.Context, email string) (*dto.UserResponseInfoBody, error) {
+// GetByEmail usecase gets private user's data from storage based on user's email
+func (uc *UserUseCase) GetByEmail(ctx context.Context, email string) (*dto.UserInfoResponse, error) {
 	resp, err := uc.repo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, err

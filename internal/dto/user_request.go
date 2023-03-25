@@ -1,6 +1,8 @@
 package dto
 
-type UserRequestSignUpBody struct {
+// UserSignUpRequestBody represents the request body with data
+// sent by the user to API to sign up in the application
+type UserSignUpRequestBody struct {
 	Surname     string `json:"surname"`
 	Name        string `json:"name"`
 	Patronymic  string `json:"patronymic"`
@@ -10,7 +12,9 @@ type UserRequestSignUpBody struct {
 	IsCourier   bool   `json:"is_courier"`
 }
 
-type UserRequestLoginBody struct {
+// UserLoginRequestBody represents the request body with data
+// sent by the user to API to log in to the application
+type UserLoginRequestBody struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

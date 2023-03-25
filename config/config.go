@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// PG is a struct for storing Postgres connection settings
 type PG struct {
 	POSTGRES_USER     string
 	POSTGRES_PASSWORD string
@@ -14,10 +15,12 @@ type PG struct {
 	POSTGRES_PORT     string
 }
 
+// Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
 }
 
+// New returns application config
 func New() (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {

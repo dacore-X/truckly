@@ -8,6 +8,9 @@ import (
 	"github.com/dacore-x/truckly/internal/dto"
 )
 
+// UserRepo is a struct that provides
+// all functions to execute SQL queries
+// related to user's requests
 type UserRepo struct {
 	*sql.DB
 }
@@ -16,7 +19,8 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db}
 }
 
-func (ur *UserRepo) Create(ctx context.Context, req dto.UserRequestSignUpBody) error {
+// Create creates a new user record in the database with meta data attached to it
+func (ur *UserRepo) Create(ctx context.Context, req dto.UserSignUpRequestBody) error {
 	query1 := `
 		INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
 		VALUES($1, $2, $3, $4, $5, $6) 
@@ -47,7 +51,8 @@ func (ur *UserRepo) Create(ctx context.Context, req dto.UserRequestSignUpBody) e
 	return nil
 }
 
-func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserResponseMeBody, error) {
+// GetMe fetches user's account data from the database and returns it
+func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse, error) {
 	query := `
 		SELECT id, surname, name, patronymic, email, phone_number, created_at
 		FROM users
@@ -55,7 +60,7 @@ func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserResponseMeBod
 	`
 	row := ur.QueryRowContext(ctx, query, id)
 
-	resp := &dto.UserResponseMeBody{}
+	resp := &dto.UserMeResponse{}
 	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
 	if err != nil {
 		return nil, err
@@ -63,7 +68,8 @@ func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserResponseMeBod
 	return resp, nil
 }
 
-func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserResponseInfoBody, error) {
+// GetByID fetches private user's data by id from the database and returns it
+func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserInfoResponse, error) {
 	query := `
 		SELECT id, email, hash_password
 		FROM users
@@ -71,7 +77,7 @@ func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserResponseInf
 	`
 	row := ur.QueryRowContext(ctx, query, id)
 
-	resp := &dto.UserResponseInfoBody{}
+	resp := &dto.UserInfoResponse{}
 	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
 	if err != nil {
 		return nil, err
@@ -79,7 +85,8 @@ func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserResponseInf
 	return resp, nil
 }
 
-func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserResponseInfoBody, error) {
+// GetByEmail fetches private user's data by email from the database and returns it
+func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserInfoResponse, error) {
 	query := `
 		SELECT id, email, hash_password
 		FROM users
@@ -87,7 +94,7 @@ func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserResp
 	`
 	row := ur.QueryRowContext(ctx, query, email)
 
-	resp := &dto.UserResponseInfoBody{}
+	resp := &dto.UserInfoResponse{}
 	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
 	if err != nil {
 		return nil, err
