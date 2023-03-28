@@ -22,4 +22,11 @@ type (
 		GetByID(context.Context, int64) (*dto.UserInfoResponse, error)
 		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
 	}
+
+	// GeoWebAPI interface represents Geo API contract
+	GeoWebAPI interface {
+		GetCoordsByObject(q string) (*dto.PointResponse, error)
+		GetObjectByCoords(lat, lon float64) (string, error)
+		GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (float64, error)
+	}
 )
