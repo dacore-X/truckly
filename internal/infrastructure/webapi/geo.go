@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dacore-x/truckly/config"
+	"github.com/dacore-x/truckly/internal/dto"
 	"io"
 	"log"
 	"net/http"
@@ -19,54 +20,7 @@ type Geo struct {
 	APIKeys        map[string]string
 }
 
-// Meta is a struct for JSON decoding meta information of the http response
-type Meta struct {
-	StatusCode int `json:"code"`
-}
-
-// GeoCoderResponse is a struct for JSON decoding response
-type GeoCoderResponse struct {
-	Result GeoCoderResult `json:"result"`
-	Meta   Meta           `json:"meta"`
-}
-
-// DistanceResponse is a struct for JSON decoding response
-type DistanceResponse struct {
-	Routes []Route `json:"routes"`
-}
-
-// Route is a struct for JSON decoding response
-type Route struct {
-	Distance float64 `json:"distance"`
-}
-
-// GeoCoderResult is a struct for JSON decoding "Result" field
-type GeoCoderResult struct {
-	Items []Item `json:"items"`
-}
-
-// Item is a struct for JSON decoding "Item" field
-type Item struct {
-	Address Address `json:"address_name"`
-	Point   Point   `json:"point"`
-}
-
-// Address is a struct for JSON decoding "Address" field
-type Address string
-
-// Point is a struct for JSON decoding "Point" field
-type Point struct {
-	Lon float64 `json:"lon"`
-	Lat float64 `json:"lat"`
-}
-
-type DistanceRequest struct {
-	Points  []Point `json:"points"`
-	Sources []int   `json:"sources"`
-	Targets []int   `json:"targets"`
-	Type    string  `json:"type"`
-}
-
+// URLQuery is a struct for building request URL
 type URLQuery struct {
 	base     string
 	endpoint string
@@ -90,7 +44,7 @@ func doRequest(method, URL string, body io.Reader) (*http.Response, error) {
 	switch method {
 	case http.MethodGet:
 		r, err := http.Get(URL)
-		//r.Header.Set("Content-Type", "application/json")
+		r.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			log.Println("error creating request")
 			return nil, err
@@ -108,6 +62,7 @@ func doRequest(method, URL string, body io.Reader) (*http.Response, error) {
 	return nil, errors.New("error making request")
 }
 
+// buildQuery building URL for request with input URLQuery
 func buildQuery(u *URLQuery) string {
 	URL, _ := url.Parse(u.base)
 	URL.Path += u.endpoint
@@ -119,7 +74,8 @@ func buildQuery(u *URLQuery) string {
 	return URL.String()
 }
 
-func (g *Geo) GetCoordsByObject(q string) (*Point, error) {
+// GetCoordsByObject converts query to object dto.PointResponse
+func (g *Geo) GetCoordsByObject(q string) (*dto.PointResponse, error) {
 	if q == "" {
 		return nil, errors.New("query is empty")
 	}
@@ -140,18 +96,18 @@ func (g *Geo) GetCoordsByObject(q string) (*Point, error) {
 		return nil, err
 	}
 
-	response := &GeoCoderResponse{}
+	response := &dto.GeoCoderResponse{}
 	decoder := json.NewDecoder(result.Body)
 	err = decoder.Decode(response)
 	result.Body.Close()
 
 	if err != nil {
-		log.Println("error unmarshalling meta")
+		//log.Println("error unmarshalling meta")
 		return nil, errors.New("error unmarshalling meta")
 	}
 
 	if response.Meta.StatusCode >= 400 {
-		log.Println("bad status code from geo")
+		//log.Println("bad status code from geo")
 		return nil, errors.New("bad status code from geo")
 	}
 
@@ -163,7 +119,12 @@ func (g *Geo) GetCoordsByObject(q string) (*Point, error) {
 	return &response.Result.Items[0].Point, nil
 }
 
-func (g *Geo) GetObjectByCoords(lat, lon float64) (*Address, error) {
+// GetObjectByCoords converts geo object with input latitude and longitude to string representation
+func (g *Geo) GetObjectByCoords(lat, lon float64) (string, error) {
+	if lat == 0 || lon == 0 {
+		return "", errors.New("coordinate couldn't be zero")
+	}
+
 	u := &URLQuery{
 		base:     g.BaseURLCatalog,
 		endpoint: "/3.0/items/geocode",
@@ -178,31 +139,32 @@ func (g *Geo) GetObjectByCoords(lat, lon float64) (*Address, error) {
 	URL := buildQuery(u)
 	result, err := doRequest(http.MethodGet, URL, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	response := &GeoCoderResponse{}
+	response := &dto.GeoCoderResponse{}
 	decoder := json.NewDecoder(result.Body)
 	err = decoder.Decode(response)
 	result.Body.Close()
 
 	if err != nil {
-		log.Println("error unmarshalling meta")
-		return nil, errors.New("error unmarshalling meta")
+		//log.Println("error unmarshalling meta")
+		return "", errors.New("error unmarshalling meta")
 	}
 
 	if response.Meta.StatusCode >= 400 {
-		log.Println("bad status code from geo")
-		return nil, errors.New("bad status code from geo")
+		//log.Println("bad status code from geo")
+		return "", errors.New("bad status code from geo")
 	}
 
 	if len(response.Result.Items) == 0 {
-		return nil, errors.New("results not found by query")
+		return "", errors.New("results not found by query")
 	}
 	// returning only the first result
-	return &response.Result.Items[0].Address, nil
+	return response.Result.Items[0].Address, nil
 }
 
+// GetDistanceBetweenPoints calculating distance between 2 points (from and to) with input latitude and longitude
 func (g *Geo) GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (float64, error) {
 	if latFrom == 0 || lonFrom == 0 || latTo == 0 || lonTo == 0 {
 		return 0, errors.New("coordinate couldn't be zero")
@@ -216,10 +178,10 @@ func (g *Geo) GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (
 			"version": "2.0",
 		},
 	}
+
 	URL := buildQuery(u)
-	log.Println(URL)
-	body := DistanceRequest{
-		Points: []Point{
+	body := dto.DistanceRequest{
+		Points: []dto.PointRequest{
 			{Lat: latFrom, Lon: lonFrom},
 			{Lat: latTo, Lon: lonTo},
 		},
@@ -232,27 +194,23 @@ func (g *Geo) GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (
 	if err != nil {
 		return 0, errors.New("error encoding body")
 	}
-	log.Println(buf.String())
 	result, err := doRequest(http.MethodPost, URL, &buf)
-	log.Println(result)
 	if result.StatusCode != 200 {
 		return 0, errors.New("error response 2gis")
 	}
 
-	response := &DistanceResponse{}
-	log.Println(result.Body)
+	response := &dto.DistanceResponse{}
 	decoder := json.NewDecoder(result.Body)
 	err = decoder.Decode(response)
 	result.Body.Close()
 
 	if err != nil {
-		log.Println("error unmarshalling body")
+		//log.Println("error unmarshalling body")
 		return 0, errors.New("error unmarshalling body")
 	}
 
 	if len(response.Routes) == 0 {
 		return 0, errors.New("routes not found")
 	}
-
 	return response.Routes[0].Distance, nil
 }
