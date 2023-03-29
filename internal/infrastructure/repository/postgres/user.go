@@ -19,15 +19,23 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db}
 }
 
-// Create creates a new user record in the database with meta data attached to it
-func (ur *UserRepo) Create(ctx context.Context, req dto.UserSignUpRequestBody) error {
+// CreateTx creates a new user record in the database with meta data attached to it
+func (ur *UserRepo) CreateTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
+	tx, err := ur.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query1 := `
 		INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
 		VALUES($1, $2, $3, $4, $5, $6) 
 		RETURNING id
 	`
 	lastInsertID := 0
-	err := ur.QueryRowContext(ctx, query1, req.Surname, req.Name, req.Patronymic, req.Email, req.PhoneNumber, req.Password).Scan(&lastInsertID)
+	err = tx.QueryRowContext(
+		ctx, query1, req.Surname, req.Name, req.Patronymic, req.Email, req.PhoneNumber, req.Password,
+	).Scan(&lastInsertID)
 	if err != nil {
 		return err
 	}
@@ -36,7 +44,7 @@ func (ur *UserRepo) Create(ctx context.Context, req dto.UserSignUpRequestBody) e
 		INSERT INTO meta(user_id, is_courier)
 		VALUES($1, $2)
 	`
-	result, err := ur.ExecContext(ctx, query2, lastInsertID, req.IsCourier)
+	result, err := tx.ExecContext(ctx, query2, lastInsertID, req.IsCourier)
 	if err != nil {
 		return err
 	}
@@ -48,11 +56,14 @@ func (ur *UserRepo) Create(ctx context.Context, req dto.UserSignUpRequestBody) e
 		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
 	}
 
+	if err = tx.Commit(); err != nil {
+		return err
+	}
 	return nil
 }
 
 // GetMe fetches user's account data from the database and returns it
-func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse, error) {
+func (ur *UserRepo) GetMe(ctx context.Context, id int) (*dto.UserMeResponse, error) {
 	query := `
 		SELECT id, surname, name, patronymic, email, phone_number, created_at
 		FROM users
@@ -69,7 +80,7 @@ func (ur *UserRepo) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse, e
 }
 
 // GetByID fetches private user's data by id from the database and returns it
-func (ur *UserRepo) GetByID(ctx context.Context, id int64) (*dto.UserInfoResponse, error) {
+func (ur *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserInfoResponse, error) {
 	query := `
 		SELECT id, email, hash_password
 		FROM users

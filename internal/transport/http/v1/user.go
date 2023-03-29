@@ -91,7 +91,7 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	body.Password = string(hash)
 
 	// Create user
-	err = h.Create(context.Background(), body)
+	err = h.CreateTx(context.Background(), &body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,

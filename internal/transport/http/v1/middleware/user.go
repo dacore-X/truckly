@@ -49,9 +49,9 @@ func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}
 
-			// Find the useer with token sub
+			// Find the user with token sub
 			sub := claims["sub"].(float64)
-			user, err := m.GetByID(context.Background(), int64(sub))
+			user, err := m.GetByID(context.Background(), int(sub))
 			if err != nil {
 				c.AbortWithStatus(http.StatusUnauthorized)
 			}

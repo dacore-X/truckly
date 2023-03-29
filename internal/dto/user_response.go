@@ -5,7 +5,7 @@ import "time"
 // UserMeResponse represents the response body
 // with user's account data sent to the user by API
 type UserMeResponse struct {
-	ID          int64     `json:"id"`
+	ID          int     `json:"id"`
 	Surname     string    `json:"surname"`
 	Name        string    `json:"name"`
 	Patronymic  string    `json:"patronymic"`
@@ -18,7 +18,7 @@ type UserMeResponse struct {
 // with private user's data sent to the user
 // verification handlers by API
 type UserInfoResponse struct {
-	ID       int64  `json:"id"`
+	ID       int  `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
