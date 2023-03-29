@@ -17,8 +17,8 @@ func NewUserUseCase(r UserRepo) *UserUseCase {
 }
 
 // Create usecase creates new user account
-func (uc *UserUseCase) Create(ctx context.Context, req dto.UserSignUpRequestBody) error {
-	err := uc.repo.Create(ctx, req)
+func (uc *UserUseCase) CreateTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
+	err := uc.repo.CreateTx(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (uc *UserUseCase) Create(ctx context.Context, req dto.UserSignUpRequestBody
 }
 
 // GetMe usecase gets user's account data from storage based on user's id
-func (uc *UserUseCase) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse, error) {
+func (uc *UserUseCase) GetMe(ctx context.Context, id int) (*dto.UserMeResponse, error) {
 	resp, err := uc.repo.GetMe(ctx, id)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (uc *UserUseCase) GetMe(ctx context.Context, id int64) (*dto.UserMeResponse
 }
 
 // GetByID usecase gets private user's data from storage based on user's id
-func (uc *UserUseCase) GetByID(ctx context.Context, id int64) (*dto.UserInfoResponse, error) {
+func (uc *UserUseCase) GetByID(ctx context.Context, id int) (*dto.UserInfoResponse, error) {
 	resp, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
