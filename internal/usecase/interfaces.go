@@ -13,6 +13,8 @@ type (
 		GetMe(context.Context, int) (*dto.UserMeResponse, error)
 		GetByID(context.Context, int) (*dto.UserInfoResponse, error)
 		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		Ban(context.Context, int) error
+		Unban(context.Context, int) error
 	}
 
 	// UserRepo interface represents user's repository contract
@@ -21,6 +23,8 @@ type (
 		GetMe(context.Context, int) (*dto.UserMeResponse, error)
 		GetByID(context.Context, int) (*dto.UserInfoResponse, error)
 		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		Ban(context.Context, int) error
+		Unban(context.Context, int) error
 	}
 
 	// GeoWebAPI interface represents Geo API contract

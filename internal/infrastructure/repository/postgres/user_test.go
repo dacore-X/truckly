@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -413,6 +414,8 @@ func TestUser_GetByEmail(t *testing.T) {
 			wantErr: sql.ErrNoRows,
 		},
 	}
+
+	// Run tests
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Expect query to fetch private user's data by email and
@@ -430,6 +433,124 @@ func TestUser_GetByEmail(t *testing.T) {
 			result, err := repo.GetByEmail(context.Background(), tc.args.email)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 			require.Nil(t, deep.Equal(tc.want, result))
+		})
+	}
+}
+
+func TestUser_Ban(t *testing.T) {
+	// Open database stub
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create repo
+	repo := NewUserRepo(db)
+
+	// Required args for tests
+	type args struct {
+		id     int
+		result driver.Result
+	}
+
+	// Slice of test cases
+	cases := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "ban existing user",
+			args: args{
+				id:     1,
+				result: sqlmock.NewResult(0, 1),
+			},
+		},
+		{
+			name: "ban non-existent user",
+			args: args{
+				id:     3,
+				result: sqlmock.NewResult(0, 0),
+			},
+			wantErr: fmt.Errorf("user is not found"),
+		},
+	}
+
+	// Run tests
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Expect query to update users's ban status and
+			// either return error or not, match it with regexp
+			mock.ExpectExec(regexp.QuoteMeta(`
+				UPDATE meta
+				SET is_banned=true
+				WHERE user_id=$1
+			`)).
+				WithArgs(tc.args.id).
+				WillReturnResult(tc.args.result).
+				WillReturnError(tc.wantErr)
+
+			// Run the ban function
+			err := repo.Ban(context.Background(), tc.args.id)
+			require.Nil(t, deep.Equal(tc.wantErr, err))
+		})
+	}
+}
+
+func TestUser_Unban(t *testing.T) {
+	// Open database stub
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create repo
+	repo := NewUserRepo(db)
+
+	// Required args for tests
+	type args struct {
+		id     int
+		result driver.Result
+	}
+
+	// Slice of test cases
+	cases := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "unban existing user",
+			args: args{
+				id:     1,
+				result: sqlmock.NewResult(0, 1),
+			},
+		},
+		{
+			name: "unban non-existent user",
+			args: args{
+				id:     3,
+				result: sqlmock.NewResult(0, 0),
+			},
+			wantErr: fmt.Errorf("user is not found"),
+		},
+	}
+
+	// Run tests
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Expect query to update users's ban status and
+			// either return error or not, match it with regexp
+			mock.ExpectExec(regexp.QuoteMeta(`
+				UPDATE meta
+				SET is_banned=false
+				WHERE user_id=$1
+			`)).
+				WithArgs(tc.args.id).
+				WillReturnResult(tc.args.result).
+				WillReturnError(tc.wantErr)
+
+			// Run the ban function
+			err := repo.Unban(context.Background(), tc.args.id)
+			require.Nil(t, deep.Equal(tc.wantErr, err))
 		})
 	}
 }

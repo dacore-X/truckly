@@ -18,3 +18,9 @@ type UserLoginRequestBody struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+// UserBanParams represents URI with user's ID
+// to identify user to be banned/unbanned
+type UserBanParams struct {
+	ID int `uri:"id" binding:"required,min=1"`
+}

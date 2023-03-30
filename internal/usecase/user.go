@@ -51,3 +51,21 @@ func (uc *UserUseCase) GetByEmail(ctx context.Context, email string) (*dto.UserI
 	}
 	return resp, nil
 }
+
+// Ban usecase changes user's ban status to banned
+func (uc *UserUseCase) Ban(ctx context.Context, id int) error {
+	err := uc.repo.Ban(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Unban usecase changes user's ban status to unbanned
+func (uc *UserUseCase) Unban(ctx context.Context, id int) error {
+	err := uc.repo.Unban(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

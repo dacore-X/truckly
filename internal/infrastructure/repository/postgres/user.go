@@ -112,3 +112,45 @@ func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserInfo
 	}
 	return resp, nil
 }
+
+// Ban updates user's is_banned field and sets its value to true
+func (ur *UserRepo) Ban(ctx context.Context, id int) error {
+	query := `
+		UPDATE meta
+		SET is_banned=true
+		WHERE user_id=$1
+	`
+	result, err := ur.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
+	}
+	return nil
+}
+
+// Unban updates user's is_banned field and sets its value to false
+func (ur *UserRepo) Unban(ctx context.Context, id int) error {
+	query := `
+		UPDATE meta
+		SET is_banned=false
+		WHERE user_id=$1
+	`
+	result, err := ur.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
+	}
+	return nil
+}

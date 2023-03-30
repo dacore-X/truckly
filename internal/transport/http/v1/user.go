@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -30,6 +31,8 @@ func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m *middleware.
 		userGroup.GET("/me", m.RequireAuth, handler.me)
 		userGroup.POST("/signup", handler.signUp)
 		userGroup.POST("/login", handler.login)
+		userGroup.POST("/:id/ban", m.RequireAuth, handler.ban)
+		userGroup.POST("/:id/unban", m.RequireAuth, handler.unban)
 	}
 
 }
@@ -155,5 +158,71 @@ func (h *userHandlers) login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "authorization is complete",
+	})
+}
+
+// ban handler gets user's id from URI and bans him
+func (h *userHandlers) ban(c *gin.Context) {
+	// Check user authorization
+	authUserKey, _ := c.Get("user")
+	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user must be authorized",
+		})
+	}
+
+	// Get params from request
+	var req dto.UserBanParams
+	if c.ShouldBindUri(&req) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "failed to read uri",
+		})
+		return
+	}
+
+	// Ban user
+	err := h.Ban(context.Background(), req.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "failed to ban user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": fmt.Sprintf("user %v has been successfully banned", req.ID),
+	})
+}
+
+// unban handler gets user's id from URI and unbans him
+func (h *userHandlers) unban(c *gin.Context) {
+	// Check user authorization
+	authUserKey, _ := c.Get("user")
+	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user must be authorized",
+		})
+	}
+
+	// Get params from request
+	var req dto.UserBanParams
+	if c.ShouldBindUri(&req) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "failed to read uri",
+		})
+		return
+	}
+
+	// Ban user
+	err := h.Unban(context.Background(), req.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "failed to unban user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": fmt.Sprintf("user %v has been successfully unbanned", req.ID),
 	})
 }
