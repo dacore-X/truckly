@@ -9,18 +9,24 @@ import (
 type (
 	// User interface represents user's usecases
 	User interface {
-		CreateTx(context.Context, *dto.UserSignUpRequestBody) error
-		GetMe(context.Context, int) (*dto.UserMeResponse, error)
-		GetByID(context.Context, int) (*dto.UserInfoResponse, error)
-		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		CreateUserTx(context.Context, *dto.UserSignUpRequestBody) error
+		BanUser(context.Context, int) error
+		UnbanUser(context.Context, int) error
+		GetUserByID(context.Context, int) (*dto.UserMeResponse, error)
+		GetUserPrivateByID(context.Context, int) (*dto.UserInfoResponse, error)
+		GetUserPrivateByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
 	// UserRepo interface represents user's repository contract
 	UserRepo interface {
-		CreateTx(context.Context, *dto.UserSignUpRequestBody) error
-		GetMe(context.Context, int) (*dto.UserMeResponse, error)
-		GetByID(context.Context, int) (*dto.UserInfoResponse, error)
-		GetByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		CreateUserTx(context.Context, *dto.UserSignUpRequestBody) error
+		BanUser(context.Context, int) error
+		UnbanUser(context.Context, int) error
+		GetUserByID(context.Context, int) (*dto.UserMeResponse, error)
+		GetUserPrivateByID(context.Context, int) (*dto.UserInfoResponse, error)
+		GetUserPrivateByEmail(context.Context, string) (*dto.UserInfoResponse, error)
+		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
 	// GeoWebAPI interface represents Geo API contract

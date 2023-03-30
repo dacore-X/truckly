@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ import (
 	"github.com/dacore-x/truckly/internal/dto"
 )
 
-func TestUser_CreateTxNoRollback(t *testing.T) {
+func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -144,13 +145,13 @@ func TestUser_CreateTxNoRollback(t *testing.T) {
 			mock.ExpectCommit()
 
 			// Run the create transaction function
-			err := repo.CreateTx(context.Background(), tc.args.body)
+			err := repo.CreateUserTx(context.Background(), tc.args.body)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 		})
 	}
 }
 
-func TestUser_CreateTxWithRollback(t *testing.T) {
+func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -219,13 +220,131 @@ func TestUser_CreateTxWithRollback(t *testing.T) {
 			mock.ExpectRollback()
 
 			// Run the create transaction function
-			err := repo.CreateTx(context.Background(), tc.args.body)
+			err := repo.CreateUserTx(context.Background(), tc.args.body)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 		})
 	}
 }
 
-func TestUser_GetMe(t *testing.T) {
+func TestPostgres_BanUser(t *testing.T) {
+	// Open database stub
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create repo
+	repo := NewUserRepo(db)
+
+	// Required args for tests
+	type args struct {
+		id     int
+		result driver.Result
+	}
+
+	// Slice of test cases
+	cases := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "ban existing user",
+			args: args{
+				id:     1,
+				result: sqlmock.NewResult(0, 1),
+			},
+		},
+		{
+			name: "ban non-existent user",
+			args: args{
+				id:     3,
+				result: sqlmock.NewResult(0, 0),
+			},
+			wantErr: fmt.Errorf("user is not found"),
+		},
+	}
+
+	// Run tests
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Expect query to update users's ban status and
+			// either return error or not, match it with regexp
+			mock.ExpectExec(regexp.QuoteMeta(`
+				UPDATE meta
+				SET is_banned=true
+				WHERE user_id=$1
+			`)).
+				WithArgs(tc.args.id).
+				WillReturnResult(tc.args.result).
+				WillReturnError(tc.wantErr)
+
+			// Run the ban function
+			err := repo.BanUser(context.Background(), tc.args.id)
+			require.Nil(t, deep.Equal(tc.wantErr, err))
+		})
+	}
+}
+
+func TestPostgres_UnbanUser(t *testing.T) {
+	// Open database stub
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create repo
+	repo := NewUserRepo(db)
+
+	// Required args for tests
+	type args struct {
+		id     int
+		result driver.Result
+	}
+
+	// Slice of test cases
+	cases := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "unban existing user",
+			args: args{
+				id:     1,
+				result: sqlmock.NewResult(0, 1),
+			},
+		},
+		{
+			name: "unban non-existent user",
+			args: args{
+				id:     3,
+				result: sqlmock.NewResult(0, 0),
+			},
+			wantErr: fmt.Errorf("user is not found"),
+		},
+	}
+
+	// Run tests
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Expect query to update users's ban status and
+			// either return error or not, match it with regexp
+			mock.ExpectExec(regexp.QuoteMeta(`
+				UPDATE meta
+				SET is_banned=false
+				WHERE user_id=$1
+			`)).
+				WithArgs(tc.args.id).
+				WillReturnResult(tc.args.result).
+				WillReturnError(tc.wantErr)
+
+			// Run the ban function
+			err := repo.UnbanUser(context.Background(), tc.args.id)
+			require.Nil(t, deep.Equal(tc.wantErr, err))
+		})
+	}
+}
+
+func TestPostgres_GetUserByID(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -293,14 +412,14 @@ func TestUser_GetMe(t *testing.T) {
 				WillReturnError(tc.wantErr)
 
 			// Run the get me function
-			result, err := repo.GetMe(context.Background(), tc.args.id)
+			result, err := repo.GetUserByID(context.Background(), tc.args.id)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 			require.Nil(t, deep.Equal(tc.want, result))
 		})
 	}
 }
 
-func TestUser_GetByID(t *testing.T) {
+func TestPostgres_GetUserPrivateByID(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -361,14 +480,14 @@ func TestUser_GetByID(t *testing.T) {
 				WillReturnError(tc.wantErr)
 
 			// Run the get by id function
-			result, err := repo.GetByID(context.Background(), tc.args.id)
+			result, err := repo.GetUserPrivateByID(context.Background(), tc.args.id)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 			require.Nil(t, deep.Equal(tc.want, result))
 		})
 	}
 }
 
-func TestUser_GetByEmail(t *testing.T) {
+func TestPostgres_GetUserPrivateByEmail(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -413,6 +532,8 @@ func TestUser_GetByEmail(t *testing.T) {
 			wantErr: sql.ErrNoRows,
 		},
 	}
+
+	// Run tests
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Expect query to fetch private user's data by email and
@@ -427,7 +548,122 @@ func TestUser_GetByEmail(t *testing.T) {
 				WillReturnError(tc.wantErr)
 
 			// Run the get by email function
-			result, err := repo.GetByEmail(context.Background(), tc.args.email)
+			result, err := repo.GetUserPrivateByEmail(context.Background(), tc.args.email)
+			require.Nil(t, deep.Equal(tc.wantErr, err))
+			require.Nil(t, deep.Equal(tc.want, result))
+		})
+	}
+}
+
+func TestUser_GetUserMeta(t *testing.T) {
+	// Open database stub
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create repo
+	repo := NewUserRepo(db)
+
+	// Required args for tests
+	type args struct {
+		id   int
+		rows *sqlmock.Rows
+	}
+
+	// Slice of test cases
+	cases := []struct {
+		name    string
+		args    args
+		want    *dto.UserMetaResponse
+		wantErr error
+	}{
+		{
+			name: "default user",
+			args: args{
+				id: 1,
+				rows: sqlmock.NewRows([]string{"user_id", "is_admin", "is_courier", "is_banned", "rating"}).
+					AddRow(1, false, false, false, 4.00),
+			},
+			want: &dto.UserMetaResponse{
+				UserID:    1,
+				IsAdmin:   false,
+				IsCourier: false,
+				IsBanned:  false,
+				Rating:    4.00,
+			},
+		},
+		{
+			name: "banned user",
+			args: args{
+				id: 2,
+				rows: sqlmock.NewRows([]string{"user_id", "is_admin", "is_courier", "is_banned", "rating"}).
+					AddRow(2, false, false, true, 3.00),
+			},
+			want: &dto.UserMetaResponse{
+				UserID:    2,
+				IsAdmin:   false,
+				IsCourier: false,
+				IsBanned:  true,
+				Rating:    3.00,
+			},
+		},
+		{
+			name: "admin user",
+			args: args{
+				id: 3,
+				rows: sqlmock.NewRows([]string{"user_id", "is_admin", "is_courier", "is_banned", "rating"}).
+					AddRow(3, true, false, false, 2.00),
+			},
+			want: &dto.UserMetaResponse{
+				UserID:    3,
+				IsAdmin:   true,
+				IsCourier: false,
+				IsBanned:  false,
+				Rating:    2.00,
+			},
+		},
+		{
+			name: "courier user",
+			args: args{
+				id: 4,
+				rows: sqlmock.NewRows([]string{"user_id", "is_admin", "is_courier", "is_banned", "rating"}).
+					AddRow(4, false, true, false, 5.00),
+			},
+			want: &dto.UserMetaResponse{
+				UserID:    4,
+				IsAdmin:   false,
+				IsCourier: true,
+				IsBanned:  false,
+				Rating:    5.00,
+			},
+		},
+		{
+			name: "user is not found",
+			args: args{
+				id: 5,
+				rows: sqlmock.NewRows([]string{"user_id", "is_admin", "is_courier", "is_banned", "rating"}).
+					AddRow(nil, nil, nil, nil, nil),
+			},
+			wantErr: sql.ErrNoRows,
+		},
+	}
+
+	// Run tests
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Expect query to fetch private user's data by email and
+			// either return error or not, match it with regexp
+			mock.ExpectQuery(regexp.QuoteMeta(`
+				SELECT user_id, is_admin, is_courier, is_banned, rating
+				FROM meta
+				WHERE user_id=$1
+			`)).
+				WithArgs(tc.args.id).
+				WillReturnRows(tc.args.rows).
+				WillReturnError(tc.wantErr)
+
+			// Run the get by email function
+			result, err := repo.GetUserMeta(context.Background(), tc.args.id)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 			require.Nil(t, deep.Equal(tc.want, result))
 		})
