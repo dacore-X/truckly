@@ -19,8 +19,8 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db}
 }
 
-// CreateTx creates a new user record in the database with meta data attached to it
-func (ur *UserRepo) CreateTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
+// CreateUserTx creates a new user record in the database with meta data attached to it
+func (ur *UserRepo) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
 	tx, err := ur.Begin()
 	if err != nil {
 		return err
@@ -62,59 +62,8 @@ func (ur *UserRepo) CreateTx(ctx context.Context, req *dto.UserSignUpRequestBody
 	return nil
 }
 
-// GetMe fetches user's account data from the database and returns it
-func (ur *UserRepo) GetMe(ctx context.Context, id int) (*dto.UserMeResponse, error) {
-	query := `
-		SELECT id, surname, name, patronymic, email, phone_number, created_at
-		FROM users
-		WHERE id=$1
-	`
-	row := ur.QueryRowContext(ctx, query, id)
-
-	resp := &dto.UserMeResponse{}
-	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// GetByID fetches private user's data by id from the database and returns it
-func (ur *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserInfoResponse, error) {
-	query := `
-		SELECT id, email, hash_password
-		FROM users
-		WHERE id=$1
-	`
-	row := ur.QueryRowContext(ctx, query, id)
-
-	resp := &dto.UserInfoResponse{}
-	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// GetByEmail fetches private user's data by email from the database and returns it
-func (ur *UserRepo) GetByEmail(ctx context.Context, email string) (*dto.UserInfoResponse, error) {
-	query := `
-		SELECT id, email, hash_password
-		FROM users
-		WHERE email=$1
-	`
-	row := ur.QueryRowContext(ctx, query, email)
-
-	resp := &dto.UserInfoResponse{}
-	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-// Ban updates user's is_banned field and sets its value to true
-func (ur *UserRepo) Ban(ctx context.Context, id int) error {
+// BanUser updates user's is_banned field and sets its value to true
+func (ur *UserRepo) BanUser(ctx context.Context, id int) error {
 	query := `
 		UPDATE meta
 		SET is_banned=true
@@ -134,8 +83,8 @@ func (ur *UserRepo) Ban(ctx context.Context, id int) error {
 	return nil
 }
 
-// Unban updates user's is_banned field and sets its value to false
-func (ur *UserRepo) Unban(ctx context.Context, id int) error {
+// UnbanUser updates user's is_banned field and sets its value to false
+func (ur *UserRepo) UnbanUser(ctx context.Context, id int) error {
 	query := `
 		UPDATE meta
 		SET is_banned=false
@@ -153,4 +102,72 @@ func (ur *UserRepo) Unban(ctx context.Context, id int) error {
 		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
 	}
 	return nil
+}
+
+// GetUserByID fetches user's account data from the database and returns it
+func (ur *UserRepo) GetUserByID(ctx context.Context, id int) (*dto.UserMeResponse, error) {
+	query := `
+		SELECT id, surname, name, patronymic, email, phone_number, created_at
+		FROM users
+		WHERE id=$1
+	`
+	row := ur.QueryRowContext(ctx, query, id)
+
+	resp := &dto.UserMeResponse{}
+	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetUserPrivateByID fetches private user's data by id from the database and returns it
+func (ur *UserRepo) GetUserPrivateByID(ctx context.Context, id int) (*dto.UserInfoResponse, error) {
+	query := `
+		SELECT id, email, hash_password
+		FROM users
+		WHERE id=$1
+	`
+	row := ur.QueryRowContext(ctx, query, id)
+
+	resp := &dto.UserInfoResponse{}
+	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetUserPrivateByEmail fetches private user's data by email from the database and returns it
+func (ur *UserRepo) GetUserPrivateByEmail(ctx context.Context, email string) (*dto.UserInfoResponse, error) {
+	query := `
+		SELECT id, email, hash_password
+		FROM users
+		WHERE email=$1
+	`
+	row := ur.QueryRowContext(ctx, query, email)
+
+	resp := &dto.UserInfoResponse{}
+	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetUserMeta fetches user's metadata by id from the database and returns it
+func (ur *UserRepo) GetUserMeta(ctx context.Context, id int) (*dto.UserMetaResponse, error) {
+	query := `
+		SELECT user_id, is_admin, is_courier, is_banned, rating
+		FROM meta
+		WHERE user_id=$1
+	`
+	row := ur.QueryRowContext(ctx, query, id)
+
+	resp := &dto.UserMetaResponse{}
+	err := row.Scan(&resp.UserID, &resp.IsAdmin, &resp.IsCourier, &resp.IsBanned, &resp.Rating)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

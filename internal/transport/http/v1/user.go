@@ -28,29 +28,31 @@ func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m *middleware.
 
 	userGroup := superGroup.Group("/user")
 	{
-		userGroup.GET("/me", m.RequireAuth, handler.me)
+		userGroup.GET("/me", m.RequireAuth, m.RequireNoBan, handler.me)
 		userGroup.POST("/signup", handler.signUp)
 		userGroup.POST("/login", handler.login)
-		userGroup.POST("/:id/ban", m.RequireAuth, handler.ban)
-		userGroup.POST("/:id/unban", m.RequireAuth, handler.unban)
+		userGroup.POST("/:id/ban", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.ban)
+		userGroup.POST("/:id/unban", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.unban)
 	}
-
 }
 
 // me handler gets user's account data based on
 // private user's data from "user" context key
 func (h *userHandlers) me(c *gin.Context) {
 	// Check user authorization
-	authUserKey, _ := c.Get("user")
-	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "user must be authorized",
+	userKey := c.GetInt("user")
+
+	// Check ban status
+	banStatusKey := c.GetBool("ban status")
+	if banStatusKey {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "user is banned",
 		})
+		return
 	}
-	req := authUserKey.(*dto.UserInfoResponse)
 
 	// Look up user in DB
-	user, err := h.GetMe(context.Background(), req.ID)
+	user, err := h.GetUserByID(context.Background(), userKey)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
@@ -76,7 +78,7 @@ func (h *userHandlers) me(c *gin.Context) {
 func (h *userHandlers) signUp(c *gin.Context) {
 	// Get params from req body
 	var body dto.UserSignUpRequestBody
-	if c.Bind(&body) != nil {
+	if c.BindJSON(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to read body",
 		})
@@ -94,7 +96,7 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	body.Password = string(hash)
 
 	// Create user
-	err = h.CreateTx(context.Background(), &body)
+	err = h.CreateUserTx(context.Background(), &body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
@@ -113,7 +115,7 @@ func (h *userHandlers) signUp(c *gin.Context) {
 func (h *userHandlers) login(c *gin.Context) {
 	// Get params from req body
 	var body dto.UserLoginRequestBody
-	if c.Bind(&body) != nil {
+	if c.BindJSON(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to read body",
 		})
@@ -121,7 +123,7 @@ func (h *userHandlers) login(c *gin.Context) {
 	}
 
 	// Look up requested user in DB
-	user, err := h.GetByEmail(context.Background(), body.Email)
+	user, err := h.GetUserPrivateByEmail(context.Background(), body.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid email or password",
@@ -163,12 +165,22 @@ func (h *userHandlers) login(c *gin.Context) {
 
 // ban handler gets user's id from URI and bans him
 func (h *userHandlers) ban(c *gin.Context) {
-	// Check user authorization
-	authUserKey, _ := c.Get("user")
-	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "user must be authorized",
+	// Check for admin priviliges
+	adminKey := c.GetBool("admin")
+	if !adminKey {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "user is not admin",
 		})
+		return
+	}
+
+	// Check ban status
+	banStatusKey := c.GetBool("ban status")
+	if banStatusKey {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "admin is banned",
+		})
+		return
 	}
 
 	// Get params from request
@@ -181,7 +193,7 @@ func (h *userHandlers) ban(c *gin.Context) {
 	}
 
 	// Ban user
-	err := h.Ban(context.Background(), req.ID)
+	err := h.BanUser(context.Background(), req.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to ban user",
@@ -196,12 +208,22 @@ func (h *userHandlers) ban(c *gin.Context) {
 
 // unban handler gets user's id from URI and unbans him
 func (h *userHandlers) unban(c *gin.Context) {
-	// Check user authorization
-	authUserKey, _ := c.Get("user")
-	if _, ok := authUserKey.(*dto.UserInfoResponse); !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "user must be authorized",
+	// Check for admin priviliges
+	adminKey := c.GetBool("admin")
+	if !adminKey {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "user is not admin",
 		})
+		return
+	}
+
+	// Check ban status
+	banStatusKey := c.GetBool("ban status")
+	if banStatusKey {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "admin is banned",
+		})
+		return
 	}
 
 	// Get params from request
@@ -214,7 +236,7 @@ func (h *userHandlers) unban(c *gin.Context) {
 	}
 
 	// Ban user
-	err := h.Unban(context.Background(), req.ID)
+	err := h.UnbanUser(context.Background(), req.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to unban user",
