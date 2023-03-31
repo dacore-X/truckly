@@ -21,6 +21,7 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 	// Open database stub
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
+	defer db.Close()
 
 	// Create repo
 	repo := NewUserRepo(db)
@@ -197,7 +198,6 @@ func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Expect transaction begin
 			mock.ExpectBegin()
-			defer mock.ExpectRollback()
 
 			// Expect query to create a new user record, return last inserted id
 			// and either return error or not, match it with regexp

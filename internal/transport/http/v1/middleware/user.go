@@ -28,7 +28,7 @@ func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "user must be authorized",
+			"error": "user is not authorized",
 		})
 		return
 	}
@@ -46,7 +46,7 @@ func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 		errors.Is(err, jwt.ErrTokenExpired) ||
 		errors.Is(err, jwt.ErrTokenNotValidYet) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "user must be authorized",
+			"error": "user is not authorized",
 		})
 		return
 	} else {
@@ -54,7 +54,7 @@ func (m *userMiddlewares) RequireAuth(c *gin.Context) {
 			// Check the exp
 			if float64(time.Now().Unix()) > claims["exp"].(float64) {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"error": "user must be authorized",
+					"error": "user is not authorized",
 				})
 				return
 			}
@@ -74,16 +74,22 @@ func (m *userMiddlewares) RequireNoBan(c *gin.Context) {
 	// Check user authorization
 	userKey := c.GetInt("user")
 
-	// Check ban status
+	// Check for existence
 	resp, err := m.GetUserMeta(context.Background(), userKey)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-			"error": "user is banned",
+			"error": "user is not found",
 		})
+		return
 	}
 
-	// Attach to request
-	c.Set("ban status", resp.IsBanned)
+	// Check ban status
+	if resp.IsBanned {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"error": "user is banned",
+		})
+		return
+	}
 
 	// continue
 	c.Next()
@@ -94,16 +100,22 @@ func (m *userMiddlewares) RequireAdmin(c *gin.Context) {
 	// Get user from keys
 	userKey := c.GetInt("user")
 
-	// Check for admin privileges
+	// Check for existence
 	resp, err := m.GetUserMeta(context.Background(), userKey)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-			"error": "user is not admin",
+			"error": "user is not found",
 		})
+		return
 	}
 
-	// Attach to request
-	c.Set("admin", resp.IsAdmin)
+	// Check for admin privileges
+	if !resp.IsAdmin {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"error": "user is not admin",
+		})
+		return
+	}
 
 	// continue
 	c.Next()
@@ -114,16 +126,22 @@ func (m *userMiddlewares) RequireCourier(c *gin.Context) {
 	// Get user from keys
 	userKey := c.GetInt("user")
 
-	// Check for courier role
+	// Check for existence
 	resp, err := m.GetUserMeta(context.Background(), userKey)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-			"error": "user is not courier",
+			"error": "user is not found",
 		})
+		return
 	}
 
-	// Attach to request
-	c.Set("courier", resp.IsCourier)
+	// Check for courier role
+	if !resp.IsCourier {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"error": "user is not courier",
+		})
+		return
+	}
 
 	// continue
 	c.Next()
