@@ -42,15 +42,6 @@ func (h *userHandlers) me(c *gin.Context) {
 	// Check user authorization
 	userKey := c.GetInt("user")
 
-	// Check ban status
-	banStatusKey := c.GetBool("ban status")
-	if banStatusKey {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "user is banned",
-		})
-		return
-	}
-
 	// Look up user in DB
 	user, err := h.GetUserByID(context.Background(), userKey)
 	if err != nil {
@@ -165,24 +156,6 @@ func (h *userHandlers) login(c *gin.Context) {
 
 // ban handler gets user's id from URI and bans him
 func (h *userHandlers) ban(c *gin.Context) {
-	// Check for admin priviliges
-	adminKey := c.GetBool("admin")
-	if !adminKey {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "user is not admin",
-		})
-		return
-	}
-
-	// Check ban status
-	banStatusKey := c.GetBool("ban status")
-	if banStatusKey {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "admin is banned",
-		})
-		return
-	}
-
 	// Get params from request
 	var req dto.UserBanParams
 	if c.ShouldBindUri(&req) != nil {
@@ -208,24 +181,6 @@ func (h *userHandlers) ban(c *gin.Context) {
 
 // unban handler gets user's id from URI and unbans him
 func (h *userHandlers) unban(c *gin.Context) {
-	// Check for admin priviliges
-	adminKey := c.GetBool("admin")
-	if !adminKey {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "user is not admin",
-		})
-		return
-	}
-
-	// Check ban status
-	banStatusKey := c.GetBool("ban status")
-	if banStatusKey {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "admin is banned",
-		})
-		return
-	}
-
 	// Get params from request
 	var req dto.UserBanParams
 	if c.ShouldBindUri(&req) != nil {
