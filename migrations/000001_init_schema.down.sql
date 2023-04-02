@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "deliveries";
 DROP TABLE IF EXISTS "meta";
+DROP TABLE IF EXISTS "users";
 DROP TABLE IF EXISTS "statuses";
 DROP TABLE IF EXISTS "trucks";
-DROP TABLE IF EXISTS "deliveries";
