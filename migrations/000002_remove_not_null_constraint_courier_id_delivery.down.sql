@@ -1,0 +1,1 @@
+ALTER TABLE deliveries ALTER COLUMN courier_id SET NOT NULL;
