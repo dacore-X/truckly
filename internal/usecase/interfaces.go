@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"github.com/dacore-x/truckly/internal/entity"
 
 	"github.com/dacore-x/truckly/internal/dto"
 )
@@ -27,6 +28,11 @@ type (
 		GetUserPrivateByID(context.Context, int) (*dto.UserInfoResponse, error)
 		GetUserPrivateByEmail(context.Context, string) (*dto.UserInfoResponse, error)
 		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
+	}
+
+	// DeliveryRepo interface represents delivery's repository contract
+	DeliveryRepo interface {
+		CreateDelivery(ctx context.Context, delivery *entity.Delivery) error
 	}
 
 	// GeoWebAPI interface represents Geo API contract
