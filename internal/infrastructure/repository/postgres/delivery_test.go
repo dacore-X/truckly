@@ -26,12 +26,12 @@ func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "usual case with truck_id",
+			name: "usual case with type_id",
 			args: args{
 				ctx: context.Background(),
 				delivery: &entity.Delivery{
 					ClientID:      1,
-					TruckID:       1,
+					TypeID:        1,
 					StatusID:      1,
 					FromLatitude:  1,
 					FromLongitude: 1,
@@ -45,7 +45,7 @@ func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "usual case without truck_id",
+			name: "usual case without type_id",
 			args: args{
 				ctx: context.Background(),
 				delivery: &entity.Delivery{
@@ -66,13 +66,13 @@ func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mock.ExpectExec(regexp.QuoteMeta(`
-				INSERT INTO deliveries(client_id, status_id, truck_id, from_longitude, to_longitude, from_latitude, to_latitude, distance, price, has_loader)
+				INSERT INTO deliveries(client_id, status_id, type_id, from_longitude, to_longitude, from_latitude, to_latitude, distance, price, has_loader)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			`)).
 				WithArgs(
 					tt.args.delivery.ClientID,
 					tt.args.delivery.StatusID,
-					tt.args.delivery.TruckID,
+					tt.args.delivery.TypeID,
 					tt.args.delivery.FromLongitude,
 					tt.args.delivery.ToLongitude,
 					tt.args.delivery.FromLatitude,
@@ -115,7 +115,7 @@ func TestDeliveryRepo_CreateDeliveryFail(t *testing.T) {
 				ctx: context.Background(),
 				delivery: &entity.Delivery{
 					//ClientID:
-					TruckID:       1,
+					TypeID:        1,
 					StatusID:      1,
 					FromLatitude:  1,
 					FromLongitude: 1,
@@ -133,13 +133,13 @@ func TestDeliveryRepo_CreateDeliveryFail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mock.ExpectExec(regexp.QuoteMeta(`
-				INSERT INTO deliveries(client_id, status_id, truck_id, from_longitude, to_longitude, from_latitude, to_latitude, distance, price, has_loader)
+				INSERT INTO deliveries(client_id, status_id, type_id, from_longitude, to_longitude, from_latitude, to_latitude, distance, price, has_loader)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			`)).
 				WithArgs(
 					tt.args.delivery.ClientID,
 					tt.args.delivery.StatusID,
-					tt.args.delivery.TruckID,
+					tt.args.delivery.TypeID,
 					tt.args.delivery.FromLongitude,
 					tt.args.delivery.ToLongitude,
 					tt.args.delivery.FromLatitude,

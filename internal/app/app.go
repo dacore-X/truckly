@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"github.com/dacore-x/truckly/internal/infrastructure/webapi"
 	"log"
 
 	"github.com/dacore-x/truckly/config"
@@ -28,10 +29,14 @@ func Run(cfg *config.Config) {
 	userUseCase := usecase.NewUserUseCase(
 		postgres.NewUserRepo(conn),
 	)
+	deliveryUseCase := usecase.NewDeliveryUseCase(
+		postgres.NewDeliveryRepo(conn),
+		webapi.New(cfg.GEO),
+	)
 
 	// HTTP server
 	r := gin.Default()
-	h := v1.NewHandlers(userUseCase)
+	h := v1.NewHandlers(userUseCase, deliveryUseCase)
 	h.NewRouter(r)
 	r.Run()
 }

@@ -11,12 +11,14 @@ import (
 // all entities' handlers and middlewares
 type Handlers struct {
 	userHandlers
+	deliveryHandlers
 	*middleware.Middlewares
 }
 
-func NewHandlers(u usecase.User) *Handlers {
+func NewHandlers(u usecase.User, d usecase.Delivery) *Handlers {
 	return &Handlers{
 		userHandlers{u},
+		deliveryHandlers{d},
 		middleware.New(u),
 	}
 }
@@ -26,5 +28,6 @@ func (h *Handlers) NewRouter(r *gin.Engine) {
 	superGroup := r.Group("/api")
 	{
 		newUserHandlers(superGroup, h.userHandlers, h.Middlewares)
+		newDeliveryHandlers(superGroup, h.deliveryHandlers, h.Middlewares)
 	}
 }

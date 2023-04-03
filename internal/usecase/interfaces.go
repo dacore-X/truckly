@@ -30,9 +30,13 @@ type (
 		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
+	Delivery interface {
+		CreateDelivery(context.Context, *entity.Delivery) error
+	}
+
 	// DeliveryRepo interface represents delivery's repository contract
 	DeliveryRepo interface {
-		CreateDelivery(ctx context.Context, delivery *entity.Delivery) error
+		CreateDelivery(context.Context, *entity.Delivery) error
 	}
 
 	// GeoWebAPI interface represents Geo API contract
