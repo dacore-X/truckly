@@ -2,9 +2,13 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 // PG is a struct for storing Postgres connection settings
@@ -26,10 +30,16 @@ type GEO struct {
 	BaseURLRouting string
 }
 
+// LOG is a struct for storing Logrus configatrion settings
+type LOG struct {
+	LogrusFormatter *logrus.TextFormatter
+}
+
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
 	*GEO
+	*LOG
 }
 
 // New returns application config
@@ -78,6 +88,7 @@ func New() (*Config, error) {
 	if !ok {
 		return nil, errors.New("BASE_URL_ROUTING is not set")
 	}
+
 	return &Config{
 		PG: &PG{
 			PostgresUser:     user,
@@ -91,6 +102,39 @@ func New() (*Config, error) {
 
 			BaseURLCatalog: baseURLCatalog,
 			BaseURLRouting: baseURLRouting,
+		},
+		LOG: &LOG{
+			LogrusFormatter: &logrus.TextFormatter{
+				TimestampFormat:        "02-01-2006 15:04:05",
+				FullTimestamp:          true,
+				DisableLevelTruncation: true,
+				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+					// Format string to get layer name
+					i := strings.Index(f.File, "truckly/")
+					layerPath, _ := strings.CutPrefix(f.File[i:], "truckly/")
+					layerArr := strings.Split(layerPath, "/")
+					layerName := fmt.Sprintf("%s/%s", layerArr[0], layerArr[1])
+
+					// Split string to get file name
+					pathArr := strings.Split(f.File, "/")
+					fileName := pathArr[len(pathArr)-1]
+
+					// Split string to get func name
+					funcArr := strings.Split(f.Function, ".")
+					funcName := funcArr[len(funcArr)-1]
+
+					// Logger message
+					var msg string
+					if layerName != "internal/transport" && fileName != "logger.go" {
+						msg = fmt.Sprintf("\tlevel:%s | %s:%d | func:%s", layerName, fileName, f.Line, funcName)
+					} else {
+						msg = fmt.Sprintf("\tlevel:%s", layerName)
+					}
+
+					// Return info
+					return "", msg
+				},
+			},
 		},
 	}, nil
 }

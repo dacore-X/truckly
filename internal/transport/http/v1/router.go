@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/gin-gonic/gin"
 
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
@@ -14,15 +15,17 @@ type Handlers struct {
 	*middleware.Middlewares
 }
 
-func NewHandlers(u usecase.User) *Handlers {
+func NewHandlers(u usecase.User, l *logger.Logger) *Handlers {
 	return &Handlers{
 		userHandlers{u},
-		middleware.New(u),
+		middleware.New(u, l),
 	}
 }
 
 // NewRouter initializes a group of all entities' routes
 func (h *Handlers) NewRouter(r *gin.Engine) {
+	r.Use(h.DefaultLogger())
+	r.Use(gin.Recovery())
 	superGroup := r.Group("/api")
 	{
 		newUserHandlers(superGroup, h.userHandlers, h.Middlewares)
