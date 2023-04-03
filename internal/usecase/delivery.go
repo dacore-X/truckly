@@ -18,12 +18,12 @@ func NewDeliveryUseCase(r DeliveryRepo, g GeoWebAPI) *DeliveryUseCase {
 }
 
 func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.Delivery) error {
-	objectFrom, err := uc.geo.GetObjectByCoords(delivery.FromLatitude, delivery.FromLongitude)
+	objectFrom, err := uc.geo.GetObjectByCoords(delivery.Geo.FromLatitude, delivery.Geo.FromLongitude)
 	if err != nil {
 		return fmt.Errorf("error finding object from")
 	}
 
-	objectTo, err := uc.geo.GetObjectByCoords(delivery.ToLatitude, delivery.ToLongitude)
+	objectTo, err := uc.geo.GetObjectByCoords(delivery.Geo.ToLatitude, delivery.Geo.ToLongitude)
 	if err != nil {
 		return fmt.Errorf("error finding object from")
 	}

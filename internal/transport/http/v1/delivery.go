@@ -34,14 +34,17 @@ func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 	}
 	log.Println(body)
 	clientID := c.GetInt("user")
-	delivery := &entity.Delivery{
-		ClientID:      clientID,
-		TypeID:        body.TypeID,
+	geo := &entity.Geo{
 		FromLongitude: body.FromLongitude,
 		FromLatitude:  body.FromLatitude,
 		ToLongitude:   body.ToLongitude,
 		ToLatitude:    body.ToLatitude,
-		HasLoader:     body.HasLoader,
+	}
+	delivery := &entity.Delivery{
+		ClientID:  clientID,
+		TypeID:    body.TypeID,
+		Geo:       geo,
+		HasLoader: body.HasLoader,
 	}
 
 	err := h.CreateDelivery(context.Background(), delivery)
