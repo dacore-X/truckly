@@ -2,8 +2,9 @@ package app
 
 import (
 	"database/sql"
-
 	"github.com/dacore-x/truckly/config"
+	"github.com/dacore-x/truckly/internal/infrastructure/microservice"
+	"github.com/dacore-x/truckly/internal/infrastructure/webapi"
 	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/dacore-x/truckly/pkg/pghelper"
 	"github.com/gin-gonic/gin"
@@ -37,10 +38,21 @@ func Run(cfg *config.Config) {
 		appLogger,
 	)
 
+	geoWebAPI := webapi.New(cfg.GEO)
+	priceEstimatorService := microservice.New(cfg.SERVICES)
+
+	deliveryUseCase := usecase.NewDeliveryUseCase(
+		postgres.NewDeliveryRepo(conn),
+		geoWebAPI,
+	)
+
+	geoUseCase := usecase.NewGeoUseCase(geoWebAPI)
+	priceEstimatorUseCase := usecase.NewPriceEstimatorUseCase(priceEstimatorService)
+
 	// Create HTTP server using Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	h := v1.NewHandlers(userUseCase, appLogger)
+	h := v1.NewHandlers(userUseCase, deliveryUseCase, geoUseCase, priceEstimatorUseCase, appLogger)
 	h.NewRouter(r)
 	r.Run()
 }

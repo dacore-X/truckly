@@ -30,15 +30,31 @@ type (
 		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
-	// DeliveryRepo interface represents delivery's repository contract
-	DeliveryRepo interface {
-		CreateDelivery(ctx context.Context, delivery *entity.Delivery) error
+	Delivery interface {
+		CreateDelivery(context.Context, *entity.Delivery) error
 	}
 
+	// DeliveryRepo interface represents delivery's repository contract
+	DeliveryRepo interface {
+		CreateDelivery(context.Context, *entity.Delivery) error
+	}
+
+	Geo interface {
+		GetCoordsByObject(ctx context.Context, q string) (*dto.PointResponse, error)
+		GetObjectByCoords(ctx context.Context, lat, lon float64) (string, error)
+	}
 	// GeoWebAPI interface represents Geo API contract
 	GeoWebAPI interface {
 		GetCoordsByObject(q string) (*dto.PointResponse, error)
 		GetObjectByCoords(lat, lon float64) (string, error)
 		GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (float64, error)
+	}
+
+	PriceEstimator interface {
+		EstimateDeliveryPrice(ctx context.Context, body *dto.EstimatePriceRequestBody) (float64, error)
+	}
+
+	PriceEstimatorService interface {
+		EstimateDeliveryPrice(*dto.EstimatePriceRequestBody) (float64, error)
 	}
 )

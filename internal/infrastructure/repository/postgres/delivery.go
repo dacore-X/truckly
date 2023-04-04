@@ -19,12 +19,29 @@ func NewDeliveryRepo(db *sql.DB) *DeliveryRepo {
 }
 
 func (dr *DeliveryRepo) CreateDelivery(ctx context.Context, delivery *entity.Delivery) error {
-	q := `
-	INSERT INTO deliveries(client_id, status_id, truck_id, from_longitude, to_longitude, from_latitude, to_latitude, distance, price, has_loader)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	tx, err := dr.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	//from_longitude, to_longitude, from_latitude, to_latitude, distance
+	q1 := `
+		INSERT INTO geo(from_longitude, from_latitude, from_object, to_longitude, to_latitude, to_object, distance)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id
+	`
+	lastInsertID := 0
+	err = tx.QueryRowContext(ctx, q1, delivery.Geo.FromLongitude, delivery.Geo.FromLatitude, delivery.Geo.FromObject, delivery.Geo.ToLongitude, delivery.Geo.ToLatitude, delivery.Geo.ToObject, delivery.Geo.Distance).Scan(&lastInsertID)
+	if err != nil {
+		return err
+	}
+
+	q2 := `
+	INSERT INTO deliveries(client_id, status_id, type_id, geo_id, price, has_loader)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	`
 
-	res, err := dr.ExecContext(ctx, q, delivery.ClientID, 1, delivery.TruckID, delivery.FromLongitude, delivery.ToLongitude, delivery.FromLatitude, delivery.ToLatitude, delivery.Distance, delivery.Price, delivery.HasLoader)
+	res, err := tx.ExecContext(ctx, q2, delivery.ClientID, 1, delivery.TypeID, lastInsertID, delivery.Price, delivery.HasLoader)
 	if err != nil {
 		return err
 	}
@@ -38,5 +55,8 @@ func (dr *DeliveryRepo) CreateDelivery(ctx context.Context, delivery *entity.Del
 		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
 	}
 
+	if err = tx.Commit(); err != nil {
+		return err
+	}
 	return nil
 }

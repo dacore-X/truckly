@@ -84,9 +84,10 @@ func (g *Geo) GetCoordsByObject(q string) (*dto.PointResponse, error) {
 		base:     g.BaseURLCatalog,
 		endpoint: "/3.0/items/geocode",
 		params: map[string]string{
-			"q":      q,
-			"key":    g.APIKeys["catalog"],
-			"fields": "items.point",
+			"q":       q,
+			"key":     g.APIKeys["catalog"],
+			"fields":  "items.point",
+			"city_id": "4504222397630173",
 		},
 	}
 
@@ -102,16 +103,17 @@ func (g *Geo) GetCoordsByObject(q string) (*dto.PointResponse, error) {
 	result.Body.Close()
 
 	if err != nil {
-		//log.Println("error unmarshalling meta")
+		log.Println("error unmarshalling meta")
 		return nil, errors.New("error unmarshalling meta")
 	}
 
 	if response.Meta.StatusCode >= 400 {
-		//log.Println("bad status code from geo")
+		log.Println("bad status code from geo")
 		return nil, errors.New("bad status code from geo")
 	}
 
 	if len(response.Result.Items) == 0 {
+		log.Println("results not found by query")
 		return nil, errors.New("results not found by query")
 	}
 
@@ -148,19 +150,25 @@ func (g *Geo) GetObjectByCoords(lat, lon float64) (string, error) {
 	result.Body.Close()
 
 	if err != nil {
-		//log.Println("error unmarshalling meta")
+		log.Println("error unmarshalling meta")
 		return "", errors.New("error unmarshalling meta")
 	}
 
 	if response.Meta.StatusCode >= 400 {
-		//log.Println("bad status code from geo")
+		log.Println("bad status code from geo")
 		return "", errors.New("bad status code from geo")
 	}
 
 	if len(response.Result.Items) == 0 {
+		log.Println("results not found by query")
 		return "", errors.New("results not found by query")
 	}
+	log.Println(response.Result.Items[0].Address)
 	// returning only the first result
+	addr := response.Result.Items[0].Address
+	if addr == "" {
+		return response.Result.Items[0].FullName, nil
+	}
 	return response.Result.Items[0].Address, nil
 }
 

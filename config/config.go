@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -35,10 +36,15 @@ type LOG struct {
 	LogrusFormatter *logrus.TextFormatter
 }
 
+type SERVICES struct {
+	Ports map[string]int
+}
+
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
 	*GEO
+	*SERVICES
 	*LOG
 }
 
@@ -89,6 +95,12 @@ func New() (*Config, error) {
 		return nil, errors.New("BASE_URL_ROUTING is not set")
 	}
 
+	x, ok := os.LookupEnv("PRICE_ESTIMATOR_PORT")
+	if !ok {
+		return nil, errors.New("PRICE_ESTIMATOR_PORT is not set")
+	}
+	priceEstimatorPort, _ := strconv.Atoi(x)
+
 	return &Config{
 		PG: &PG{
 			PostgresUser:     user,
@@ -102,6 +114,11 @@ func New() (*Config, error) {
 
 			BaseURLCatalog: baseURLCatalog,
 			BaseURLRouting: baseURLRouting,
+		},
+		SERVICES: &SERVICES{
+			Ports: map[string]int{
+				"PriceEstimator": priceEstimatorPort,
+			},
 		},
 		LOG: &LOG{
 			LogrusFormatter: &logrus.TextFormatter{
