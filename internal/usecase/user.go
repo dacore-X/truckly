@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 
+	"github.com/dacore-x/truckly/pkg/logger"
+
 	"github.com/dacore-x/truckly/internal/dto"
 )
 
@@ -10,10 +12,11 @@ import (
 // all user's usecases
 type UserUseCase struct {
 	repo UserRepo
+	l    *logger.Logger
 }
 
-func NewUserUseCase(r UserRepo) *UserUseCase {
-	return &UserUseCase{repo: r}
+func NewUserUseCase(r UserRepo, l *logger.Logger) *UserUseCase {
+	return &UserUseCase{repo: r, l: l}
 }
 
 // CreateUserTx usecase creates new user account
