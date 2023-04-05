@@ -2,11 +2,13 @@ package v1
 
 import (
 	"context"
-	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
-	"github.com/dacore-x/truckly/internal/usecase"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
+	"github.com/dacore-x/truckly/internal/usecase"
 )
 
 type geoHandlers struct {
@@ -37,7 +39,6 @@ func (h *geoHandlers) getCoordsByObject(c *gin.Context) {
 		"coords": coords,
 	})
 	return
-
 }
 
 func (h *geoHandlers) getObjectByCoords(c *gin.Context) {

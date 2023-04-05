@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/dacore-x/truckly/internal/entity"
 	"log"
+
+	"github.com/dacore-x/truckly/internal/entity"
 )
 
 // DeliveryUseCase is a struct that provides all use cases of the delivery entity

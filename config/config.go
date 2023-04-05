@@ -95,11 +95,20 @@ func New() (*Config, error) {
 		return nil, errors.New("BASE_URL_ROUTING is not set")
 	}
 
-	x, ok := os.LookupEnv("PRICE_ESTIMATOR_PORT")
+	var mainPort int
+
+	port1 := os.Getenv("PORT")
+	if port1 != "" {
+		mainPort, _ = strconv.Atoi(port1)
+	} else {
+		mainPort = 8080
+	}
+
+	port2, ok := os.LookupEnv("PRICE_ESTIMATOR_PORT")
 	if !ok {
 		return nil, errors.New("PRICE_ESTIMATOR_PORT is not set")
 	}
-	priceEstimatorPort, _ := strconv.Atoi(x)
+	priceEstimatorPort, _ := strconv.Atoi(port2)
 
 	return &Config{
 		PG: &PG{
@@ -117,7 +126,8 @@ func New() (*Config, error) {
 		},
 		SERVICES: &SERVICES{
 			Ports: map[string]int{
-				"PriceEstimator": priceEstimatorPort,
+				"Main Application": mainPort,
+				"PriceEstimator":   priceEstimatorPort,
 			},
 		},
 		LOG: &LOG{
@@ -125,6 +135,7 @@ func New() (*Config, error) {
 				TimestampFormat:        "02-01-2006 15:04:05",
 				FullTimestamp:          true,
 				DisableLevelTruncation: true,
+				ForceColors:            true,
 				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 					// Format string to get layer name
 					i := strings.Index(f.File, "truckly/")
@@ -143,7 +154,7 @@ func New() (*Config, error) {
 					// Logger message
 					var msg string
 					if layerName != "internal/transport" && fileName != "logger.go" {
-						msg = fmt.Sprintf("\tlevel:%s | %s:%d | func:%s", layerName, fileName, f.Line, funcName)
+						msg = fmt.Sprintf("\tlevel:%s | %s:%d | func:%s |", layerName, fileName, f.Line, funcName)
 					} else {
 						msg = fmt.Sprintf("\tlevel:%s", layerName)
 					}

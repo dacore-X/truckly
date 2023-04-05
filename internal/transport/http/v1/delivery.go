@@ -2,13 +2,15 @@ package v1
 
 import (
 	"context"
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/dacore-x/truckly/internal/dto"
 	"github.com/dacore-x/truckly/internal/entity"
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
 	"github.com/dacore-x/truckly/internal/usecase"
-	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
 )
 
 type deliveryHandlers struct {
