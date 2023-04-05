@@ -19,6 +19,7 @@ func (m *loggerMiddlewares) Log(c *gin.Context) {
 	start := time.Now() // Start timer
 	path := c.Request.URL.Path
 	raw := c.Request.URL.RawQuery
+	queryParams := c.Request.URL.Query()
 
 	// Process request
 	c.Next()
@@ -37,8 +38,21 @@ func (m *loggerMiddlewares) Log(c *gin.Context) {
 	param.StatusCode = c.Writer.Status()
 	param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
 
+	// Concat request path
 	if raw != "" {
-		path = path + "?" + raw
+		path = path + "?"
+	}
+
+	queryNum := 0
+	for key, values := range queryParams {
+		if queryNum != 0 {
+			path = path + "&"
+		}
+		path = path + key + "="
+		for _, x := range values {
+			path = path + x
+		}
+		queryNum++
 	}
 	param.Path = path
 

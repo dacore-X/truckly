@@ -35,15 +35,15 @@ func Run(cfg *config.Config) {
 
 	// Use cases
 	userUseCase := usecase.NewUserUseCase(
-		postgres.NewUserRepo(conn),
+		postgres.NewUserRepo(conn, appLogger),
 		appLogger,
 	)
 
-	geoWebAPI := webapi.New(cfg.GEO)
-	priceEstimatorService := microservice.New(cfg.SERVICES)
+	geoWebAPI := webapi.New(cfg.GEO, appLogger)
+	priceEstimatorService := microservice.New(cfg.SERVICES, appLogger)
 
 	deliveryUseCase := usecase.NewDeliveryUseCase(
-		postgres.NewDeliveryRepo(conn),
+		postgres.NewDeliveryRepo(conn, appLogger),
 		geoWebAPI,
 		appLogger,
 	)
