@@ -2,11 +2,14 @@ package v1
 
 import (
 	"context"
-	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
-	"github.com/dacore-x/truckly/internal/usecase"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
+	"github.com/dacore-x/truckly/internal/usecase"
 )
 
 type geoHandlers struct {
@@ -27,8 +30,10 @@ func (h *geoHandlers) getCoordsByObject(c *gin.Context) {
 	q := c.Query("q")
 	coords, err := h.GetCoordsByObject(context.Background(), q)
 	if err != nil {
+		err := fmt.Errorf("error finding geo object")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "error finding geo object",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -36,8 +41,6 @@ func (h *geoHandlers) getCoordsByObject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"coords": coords,
 	})
-	return
-
 }
 
 func (h *geoHandlers) getObjectByCoords(c *gin.Context) {
@@ -47,23 +50,29 @@ func (h *geoHandlers) getObjectByCoords(c *gin.Context) {
 	latConv, err := strconv.ParseFloat(lat, 64)
 
 	if err != nil {
+		err := fmt.Errorf("error converting latitude")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "error converting latitude",
+			"error": err.Error(),
 		})
 		return
 	}
 
 	lonConv, err := strconv.ParseFloat(lon, 64)
 	if err != nil {
+		err := fmt.Errorf("error converting longitude")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "error converting longitude",
+			"error": err.Error(),
 		})
 		return
 	}
 	object, err := h.GetObjectByCoords(context.Background(), latConv, lonConv)
 	if err != nil {
+		err := fmt.Errorf("error finding geo object")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "error finding geo object",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -71,5 +80,4 @@ func (h *geoHandlers) getObjectByCoords(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"coords": object,
 	})
-	return
 }

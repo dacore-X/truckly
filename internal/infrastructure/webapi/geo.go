@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dacore-x/truckly/config"
-	"github.com/dacore-x/truckly/internal/dto"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/dacore-x/truckly/config"
+
+	"github.com/dacore-x/truckly/internal/dto"
 )
 
 // Geo is a struct for communicating with 2GIS API
@@ -163,7 +165,6 @@ func (g *Geo) GetObjectByCoords(lat, lon float64) (string, error) {
 		log.Println("results not found by query")
 		return "", errors.New("results not found by query")
 	}
-	log.Println(response.Result.Items[0].Address)
 	// returning only the first result
 	addr := response.Result.Items[0].Address
 	if addr == "" {
