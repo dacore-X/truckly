@@ -45,8 +45,9 @@ func (h *userHandlers) me(c *gin.Context) {
 	// Look up user in DB
 	user, err := h.GetUserByID(context.Background(), userKey)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -70,8 +71,10 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	// Get params from req body
 	var body dto.UserSignUpRequestBody
 	if c.BindJSON(&body) != nil {
+		err := fmt.Errorf("failed to read body")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read body",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -79,8 +82,10 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	// Hash password
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
+		err := fmt.Errorf("failed to hash password")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to hash password",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -89,8 +94,9 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	// Create user
 	err = h.CreateUserTx(context.Background(), &body)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}
@@ -107,8 +113,10 @@ func (h *userHandlers) login(c *gin.Context) {
 	// Get params from req body
 	var body dto.UserLoginRequestBody
 	if c.BindJSON(&body) != nil {
+		err := fmt.Errorf("failed to read body")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read body",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -116,8 +124,10 @@ func (h *userHandlers) login(c *gin.Context) {
 	// Look up requested user in DB
 	user, err := h.GetUserPrivateByEmail(context.Background(), body.Email)
 	if err != nil {
+		err := fmt.Errorf("invalid email or password")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid email or password",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -125,8 +135,10 @@ func (h *userHandlers) login(c *gin.Context) {
 	// Compare sent in password wwith saved user password hash
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
 	if err != nil {
+		err := fmt.Errorf("invalid email or password")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid email or password",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -139,8 +151,10 @@ func (h *userHandlers) login(c *gin.Context) {
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
+		err := fmt.Errorf("failed to create token")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to create token",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -159,8 +173,10 @@ func (h *userHandlers) ban(c *gin.Context) {
 	// Get params from request
 	var req dto.UserBanParams
 	if c.ShouldBindUri(&req) != nil {
+		err := fmt.Errorf("failed to read uri")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read uri",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -168,8 +184,10 @@ func (h *userHandlers) ban(c *gin.Context) {
 	// Ban user
 	err := h.BanUser(context.Background(), req.ID)
 	if err != nil {
+		err := fmt.Errorf("failed to ban user")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to ban user",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -184,8 +202,10 @@ func (h *userHandlers) unban(c *gin.Context) {
 	// Get params from request
 	var req dto.UserBanParams
 	if c.ShouldBindUri(&req) != nil {
+		err := fmt.Errorf("failed to read uri")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read uri",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -193,8 +213,10 @@ func (h *userHandlers) unban(c *gin.Context) {
 	// Ban user
 	err := h.UnbanUser(context.Background(), req.ID)
 	if err != nil {
+		err := fmt.Errorf("failed to unban user")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to unban user",
+			"error": err.Error(),
 		})
 		return
 	}

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -29,8 +30,10 @@ func newDeliveryHandlers(superGroup *gin.RouterGroup, u usecase.Delivery, m *mid
 func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 	var body dto.DeliveryCreateRequestBody
 	if c.BindJSON(&body) != nil {
+		err := fmt.Errorf("failed to read body")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read body",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -51,8 +54,9 @@ func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 
 	err := h.CreateDelivery(context.Background(), delivery)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

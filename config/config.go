@@ -134,14 +134,13 @@ func New() (*Config, error) {
 			LogrusFormatter: &logrus.TextFormatter{
 				TimestampFormat:        "02-01-2006 15:04:05",
 				FullTimestamp:          true,
-				DisableLevelTruncation: true,
 				ForceColors:            true,
 				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 					// Format string to get layer name
 					i := strings.Index(f.File, "truckly/")
 					layerPath, _ := strings.CutPrefix(f.File[i:], "truckly/")
 					layerArr := strings.Split(layerPath, "/")
-					layerName := fmt.Sprintf("%s/%s", layerArr[0], layerArr[1])
+					layerMsg := fmt.Sprintf("level:%s/%s", layerArr[0], layerArr[1])
 
 					// Split string to get file name
 					pathArr := strings.Split(f.File, "/")
@@ -153,10 +152,10 @@ func New() (*Config, error) {
 
 					// Logger message
 					var msg string
-					if layerName != "internal/transport" && fileName != "logger.go" {
-						msg = fmt.Sprintf("\tlevel:%s | %s:%d | func:%s |", layerName, fileName, f.Line, funcName)
+					if layerMsg != "level:internal/transport" && fileName != "logger.go" {
+						msg = fmt.Sprintf("%30s | %s:%d | func:%s |", layerMsg, fileName, f.Line, funcName)
 					} else {
-						msg = fmt.Sprintf("\tlevel:%s", layerName)
+						msg = fmt.Sprintf("%30s", layerMsg)
 					}
 
 					// Return info
