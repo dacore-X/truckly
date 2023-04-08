@@ -14,16 +14,22 @@ import (
 
 // DeliveryUseCase is a struct that provides all use cases of the delivery entity
 type DeliveryUseCase struct {
-	repo    DeliveryRepo
-	geo     GeoWebAPI
-	service PriceEstimatorService
+	repo      DeliveryRepo
+	geo       GeoWebAPI
+	service   PriceEstimatorService
 	appLogger *logger.Logger
 }
 
-// Response is an internal struct for syncing results of goroutines
-type Response struct {
+// ObjectResponse is an internal struct for syncing results of goroutines
+type ObjectResponse struct {
 	Object string
 	Error  error
+}
+
+// DistanceResponse is an internal struct for syncing results of goroutines
+type DistanceResponse struct {
+	Distance float64
+	Error    error
 }
 
 func NewDeliveryUseCase(r DeliveryRepo, g GeoWebAPI, s PriceEstimatorService, l *logger.Logger) *DeliveryUseCase {
@@ -32,41 +38,51 @@ func NewDeliveryUseCase(r DeliveryRepo, g GeoWebAPI, s PriceEstimatorService, l 
 
 // CreateDelivery creates new user's delivery
 func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.Delivery) error {
-	fromObj := make(chan Response, 2)
-	toObj := make(chan Response, 2)
-	//errCh := make(chan error, 10)
-	//defer close(errCh)
+	fromObj := make(chan ObjectResponse, 2)
+	toObj := make(chan ObjectResponse, 2)
+	distCh := make(chan DistanceResponse, 2)
+
 	defer close(fromObj)
 	defer close(toObj)
+	defer close(distCh)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		fromObject, err := uc.geo.GetObjectByCoords(delivery.Geo.FromLatitude, delivery.Geo.FromLongitude)
-		fromObj <- Response{Object: fromObject, Error: err}
+		fromObj <- ObjectResponse{Object: fromObject, Error: err}
 		wg.Done()
 	}()
 	go func() {
 		toObject, err := uc.geo.GetObjectByCoords(delivery.Geo.ToLatitude, delivery.Geo.ToLongitude)
-		toObj <- Response{Object: toObject, Error: err}
+		toObj <- ObjectResponse{Object: toObject, Error: err}
+		wg.Done()
+	}()
+	go func() {
+		distance, err := uc.geo.GetDistanceBetweenPoints(delivery.Geo.FromLatitude, delivery.Geo.FromLongitude, delivery.Geo.ToLatitude, delivery.Geo.ToLongitude)
+		distCh <- DistanceResponse{Distance: distance, Error: err}
 		wg.Done()
 	}()
 	wg.Wait()
 
 	fromObjResponse, _ := <-fromObj
 	toObjResponse, _ := <-toObj
+	distResponse, _ := <-distCh
 
 	if fromObjResponse.Error != nil {
-		return fmt.Errorf("error getting from geo object")
+		err := fmt.Errorf("error getting from geo object")
+		uc.appLogger.Error(err)
+		return err
 	}
 
 	if toObjResponse.Error != nil {
-		return fmt.Errorf("error getting to geo object")
+		err := fmt.Errorf("error getting to geo object")
+		uc.appLogger.Error(err)
+		return err
 	}
 
-	distance, err := uc.geo.GetDistanceBetweenPoints(delivery.Geo.FromLatitude, delivery.Geo.FromLongitude, delivery.Geo.ToLatitude, delivery.Geo.ToLongitude)
-	if err != nil {
+	if distResponse.Error != nil {
 		err := fmt.Errorf("error finding distance between points")
 		uc.appLogger.Error(err)
 		return err
@@ -76,7 +92,7 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 		TypeID:    delivery.TypeID,
 		HasLoader: delivery.HasLoader,
 		Time:      time.Now(),
-		Distance:  distance / 1000, // in km
+		Distance:  distResponse.Distance / 1000, // in km
 	}
 	price, err := uc.service.EstimateDeliveryPrice(body)
 	if err != nil {
@@ -87,7 +103,7 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 
 	delivery.Geo.FromObject = fromObjResponse.Object
 	delivery.Geo.ToObject = toObjResponse.Object
-	delivery.Geo.Distance = distance
+	delivery.Geo.Distance = distResponse.Distance
 	delivery.Price = price
 
 	err = uc.repo.CreateDelivery(ctx, delivery)

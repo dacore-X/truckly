@@ -12,14 +12,14 @@ import (
 
 // PriceEstimatorUseCase is a struct that provides all use cases for estimating delivery prices
 type PriceEstimatorUseCase struct {
-	service PriceEstimatorService
-	geo     GeoWebAPI
+	service   PriceEstimatorService
+	geo       GeoWebAPI
 	appLogger *logger.Logger
 }
 
 func NewPriceEstimatorUseCase(s PriceEstimatorService, g GeoWebAPI, l *logger.Logger) *PriceEstimatorUseCase {
 	return &PriceEstimatorUseCase{
-		geo:     g,
+		geo:       g,
 		service:   s,
 		appLogger: l,
 	}
