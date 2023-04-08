@@ -44,10 +44,11 @@ func Run(cfg *config.Config) {
 	deliveryUseCase := usecase.NewDeliveryUseCase(
 		postgres.NewDeliveryRepo(conn),
 		geoWebAPI,
+		priceEstimatorService,
 	)
 
 	geoUseCase := usecase.NewGeoUseCase(geoWebAPI)
-	priceEstimatorUseCase := usecase.NewPriceEstimatorUseCase(priceEstimatorService)
+	priceEstimatorUseCase := usecase.NewPriceEstimatorUseCase(priceEstimatorService, geoWebAPI)
 
 	// Create HTTP server using Gin
 	gin.SetMode(gin.ReleaseMode)

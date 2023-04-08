@@ -30,6 +30,7 @@ type (
 		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
+	// Delivery interface represents delivery usecases
 	Delivery interface {
 		CreateDelivery(context.Context, *entity.Delivery) error
 	}
@@ -55,6 +56,6 @@ type (
 	}
 
 	PriceEstimatorService interface {
-		EstimateDeliveryPrice(*dto.EstimatePriceRequestBody) (float64, error)
+		EstimateDeliveryPrice(*dto.EstimatePriceInternalRequestBody) (float64, error)
 	}
 )

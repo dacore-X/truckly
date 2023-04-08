@@ -3,10 +3,8 @@ package dto
 // DeliveryCreateRequestBody represents the request body with data
 // sent by the user to API to create new delivery order
 type DeliveryCreateRequestBody struct {
-	TypeID        int     `json:"type_id" binding:"required,gte=1,lte=5"`
-	FromLongitude float64 `json:"from_longitude" binding:"required"`
-	FromLatitude  float64 `json:"from_latitude" binding:"required"`
-	ToLongitude   float64 `json:"to_longitude" binding:"required"`
-	ToLatitude    float64 `json:"to_latitude" binding:"required"`
-	HasLoader     bool    `json:"has_loader"`
+	TypeID    int           `json:"type_id" binding:"required,gte=1,lte=5"`
+	FromPoint *PointRequest `json:"from_point" binding:"required"`
+	ToPoint   *PointRequest `json:"to_point" binding:"required"`
+	HasLoader bool          `json:"has_loader"`
 }

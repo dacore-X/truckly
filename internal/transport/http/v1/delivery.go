@@ -7,7 +7,6 @@ import (
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
 	"github.com/dacore-x/truckly/internal/usecase"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 )
 
@@ -32,14 +31,15 @@ func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 		})
 		return
 	}
-	log.Println(body)
 	clientID := c.GetInt("user")
+
 	geo := &entity.Geo{
-		FromLongitude: body.FromLongitude,
-		FromLatitude:  body.FromLatitude,
-		ToLongitude:   body.ToLongitude,
-		ToLatitude:    body.ToLatitude,
+		FromLongitude: body.FromPoint.Lon,
+		FromLatitude:  body.FromPoint.Lat,
+		ToLongitude:   body.ToPoint.Lon,
+		ToLatitude:    body.ToPoint.Lat,
 	}
+
 	delivery := &entity.Delivery{
 		ClientID:  clientID,
 		TypeID:    body.TypeID,

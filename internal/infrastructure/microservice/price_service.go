@@ -37,7 +37,8 @@ func doRequest(method, URL string, body io.Reader) (*http.Response, error) {
 	return nil, errors.New("error making request")
 }
 
-func (p *PriceEstimator) EstimateDeliveryPrice(body *dto.EstimatePriceRequestBody) (float64, error) {
+// EstimateDeliveryPrice making request to PriceEstimator service to get price for delivery
+func (p *PriceEstimator) EstimateDeliveryPrice(body *dto.EstimatePriceInternalRequestBody) (float64, error) {
 	URL := fmt.Sprintf("http://localhost:%v/price", p.ServicePort)
 
 	var buf bytes.Buffer

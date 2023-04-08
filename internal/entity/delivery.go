@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Delivery represents the user's delivery data struct
+// Delivery represents delivery data struct for internal use
 type Delivery struct {
 	ID        int       `json:"id"`
 	ClientID  int       `json:"client_id"`
@@ -17,6 +17,7 @@ type Delivery struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// Geo represents geo data struct for internal use
 type Geo struct {
 	FromLongitude float64 `json:"from_longitude"`
 	FromLatitude  float64 `json:"from_latitude"`

@@ -163,7 +163,6 @@ func (g *Geo) GetObjectByCoords(lat, lon float64) (string, error) {
 		log.Println("results not found by query")
 		return "", errors.New("results not found by query")
 	}
-	log.Println(response.Result.Items[0].Address)
 	// returning only the first result
 	addr := response.Result.Items[0].Address
 	if addr == "" {
