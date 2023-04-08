@@ -1,29 +1,26 @@
 package webapi
 
 import (
-	"github.com/dacore-x/truckly/config"
-	"github.com/dacore-x/truckly/internal/dto"
-	"log"
 	"math"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/dacore-x/truckly/config"
+	"github.com/dacore-x/truckly/pkg/logger"
+	"github.com/sirupsen/logrus"
+
+	"github.com/dacore-x/truckly/internal/dto"
 )
 
 func isCloseCoordinate(test, response float64) bool {
 	var tolerance = 0.002
-	if math.Abs(test-response) < tolerance {
-		return true
-	}
-	return false
+	return math.Abs(test-response) < tolerance
 }
 
 func isCloseDistance(test, response float64) bool {
 	var tolerance = 20.
-	if math.Abs(test-response)/response*100 < tolerance {
-		return true
-	}
-	return false
+	return math.Abs(test-response)/response*100 < tolerance
 }
 
 func TestGeo_GetCoordsByObject(t *testing.T) {
@@ -31,10 +28,14 @@ func TestGeo_GetCoordsByObject(t *testing.T) {
 	BaseURLCatalog := os.Getenv("BASE_URL_CATALOG")
 
 	// Create instance of GeoWebAPI
-	g := New(&config.GEO{
-		APIKeyCatalog:  APIKeyCatalog,
-		BaseURLCatalog: BaseURLCatalog,
-	})
+	testLogger := logrus.New()
+	g := New(
+		&config.GEO{
+			APIKeyCatalog:  APIKeyCatalog,
+			BaseURLCatalog: BaseURLCatalog,
+		},
+		logger.New(testLogger),
+	)
 	// Query string for finding geo objects
 	type args struct {
 		q string
@@ -78,7 +79,6 @@ func TestGeo_GetCoordsByObject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := g.GetCoordsByObject(tt.args.q)
-			log.Println(got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetCoordsByObject() error = %v, wantErr %v", err != nil, tt.wantErr)
 				return
@@ -103,10 +103,14 @@ func TestGeo_GetObjectByCoords(t *testing.T) {
 	BaseURLCatalog := os.Getenv("BASE_URL_CATALOG")
 
 	// Create instance of GeoWebAPI
-	g := New(&config.GEO{
-		APIKeyCatalog:  APIKeyCatalog,
-		BaseURLCatalog: BaseURLCatalog,
-	})
+	testLogger := logrus.New()
+	g := New(
+		&config.GEO{
+			APIKeyCatalog:  APIKeyCatalog,
+			BaseURLCatalog: BaseURLCatalog,
+		},
+		logger.New(testLogger),
+	)
 
 	type args struct {
 		lat float64
@@ -174,10 +178,14 @@ func TestGeo_GetDistanceBetweenPoints(t *testing.T) {
 	BaseURLRouting := os.Getenv("BASE_URL_ROUTING")
 
 	// Create instance of GeoWebAPI
-	g := New(&config.GEO{
-		APIKeyRouting:  APIKeyRouting,
-		BaseURLRouting: BaseURLRouting,
-	})
+	testLogger := logrus.New()
+	g := New(
+		&config.GEO{
+			APIKeyRouting:  APIKeyRouting,
+			BaseURLRouting: BaseURLRouting,
+		},
+		logger.New(testLogger),
+	)
 
 	type args struct {
 		latFrom float64

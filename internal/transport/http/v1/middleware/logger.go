@@ -19,6 +19,7 @@ func (m *loggerMiddlewares) Log(c *gin.Context) {
 	start := time.Now() // Start timer
 	path := c.Request.URL.Path
 	raw := c.Request.URL.RawQuery
+	queryParams := c.Request.URL.Query()
 
 	// Process request
 	c.Next()
@@ -36,10 +37,22 @@ func (m *loggerMiddlewares) Log(c *gin.Context) {
 	param.Method = c.Request.Method
 	param.StatusCode = c.Writer.Status()
 	param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
-	param.BodySize = c.Writer.Size()
 
+	// Concat request path
 	if raw != "" {
-		path = path + "?" + raw
+		path = path + "?"
+	}
+
+	queryNum := 0
+	for key, values := range queryParams {
+		if queryNum != 0 {
+			path = path + "&"
+		}
+		path = path + key + "="
+		for _, x := range values {
+			path = path + x
+		}
+		queryNum++
 	}
 	param.Path = path
 
@@ -50,7 +63,7 @@ func (m *loggerMiddlewares) Log(c *gin.Context) {
 	resetColor := param.ResetColor()
 
 	// Logger message using the params
-	msg := fmt.Sprintf("|%s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
+	msg := fmt.Sprintf("|%s %3d %s| %13v | %8s |%s %-7s %s %#v\n%s",
 		statusColor, param.StatusCode, resetColor,
 		param.Latency,
 		param.ClientIP,

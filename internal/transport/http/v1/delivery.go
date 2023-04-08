@@ -2,12 +2,15 @@ package v1
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/dacore-x/truckly/internal/dto"
 	"github.com/dacore-x/truckly/internal/entity"
 	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
 	"github.com/dacore-x/truckly/internal/usecase"
-	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type deliveryHandlers struct {
@@ -26,13 +29,15 @@ func newDeliveryHandlers(superGroup *gin.RouterGroup, u usecase.Delivery, m *mid
 func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 	var body dto.DeliveryCreateRequestBody
 	if c.BindJSON(&body) != nil {
+		err := fmt.Errorf("failed to read body")
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read body",
+			"error": err.Error(),
 		})
 		return
 	}
-	clientID := c.GetInt("user")
 
+	clientID := c.GetInt("user")
 	geo := &entity.Geo{
 		FromLongitude: body.FromPoint.Lon,
 		FromLatitude:  body.FromPoint.Lat,
@@ -49,8 +54,9 @@ func (h *deliveryHandlers) createDelivery(c *gin.Context) {
 
 	err := h.CreateDelivery(context.Background(), delivery)
 	if err != nil {
+		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"error": err.Error(),
 		})
 		return
 	}

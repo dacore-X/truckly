@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/dacore-x/truckly/internal/dto"
+
+	"github.com/dacore-x/truckly/pkg/logger"
+
 	"github.com/dacore-x/truckly/internal/entity"
 	"sync"
 	"time"
@@ -14,6 +17,7 @@ type DeliveryUseCase struct {
 	repo    DeliveryRepo
 	geo     GeoWebAPI
 	service PriceEstimatorService
+	appLogger *logger.Logger
 }
 
 // Response is an internal struct for syncing results of goroutines
@@ -22,8 +26,8 @@ type Response struct {
 	Error  error
 }
 
-func NewDeliveryUseCase(r DeliveryRepo, g GeoWebAPI, s PriceEstimatorService) *DeliveryUseCase {
-	return &DeliveryUseCase{repo: r, geo: g, service: s}
+func NewDeliveryUseCase(r DeliveryRepo, g GeoWebAPI, s PriceEstimatorService, l *logger.Logger) *DeliveryUseCase {
+	return &DeliveryUseCase{repo: r, geo: g, service: s, appLogger: l}
 }
 
 // CreateDelivery creates new user's delivery
@@ -63,7 +67,9 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 
 	distance, err := uc.geo.GetDistanceBetweenPoints(delivery.Geo.FromLatitude, delivery.Geo.FromLongitude, delivery.Geo.ToLatitude, delivery.Geo.ToLongitude)
 	if err != nil {
-		return fmt.Errorf("error finding distance between points")
+		err := fmt.Errorf("error finding distance between points")
+		uc.appLogger.Error(err)
+		return err
 	}
 
 	body := &dto.EstimatePriceInternalRequestBody{
@@ -74,7 +80,9 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 	}
 	price, err := uc.service.EstimateDeliveryPrice(body)
 	if err != nil {
-		return fmt.Errorf("error estimating delivery price")
+		err := fmt.Errorf("error finding object from")
+		uc.appLogger.Error(err)
+		return err
 	}
 
 	delivery.Geo.FromObject = fromObjResponse.Object
@@ -84,6 +92,7 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 
 	err = uc.repo.CreateDelivery(ctx, delivery)
 	if err != nil {
+		uc.appLogger.Error(err)
 		return err
 	}
 	return nil

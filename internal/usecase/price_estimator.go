@@ -3,6 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
+
+	"github.com/dacore-x/truckly/pkg/logger"
+
 	"github.com/dacore-x/truckly/internal/dto"
 	"time"
 )
@@ -11,19 +14,23 @@ import (
 type PriceEstimatorUseCase struct {
 	service PriceEstimatorService
 	geo     GeoWebAPI
+	appLogger *logger.Logger
 }
 
-func NewPriceEstimatorUseCase(s PriceEstimatorService, g GeoWebAPI) *PriceEstimatorUseCase {
+func NewPriceEstimatorUseCase(s PriceEstimatorService, g GeoWebAPI, l *logger.Logger) *PriceEstimatorUseCase {
 	return &PriceEstimatorUseCase{
-		service: s,
 		geo:     g,
+		service:   s,
+		appLogger: l,
 	}
 }
 
 // EstimateDeliveryPrice usecase estimates delivery price
 func (uc *PriceEstimatorUseCase) EstimateDeliveryPrice(ctx context.Context, req *dto.EstimatePriceRequestBody) (float64, error) {
 	if req.TypeID < 1 || req.TypeID > 5 {
-		return 0, errors.New("incorrect type id")
+		err := errors.New("incorrect type id")
+		uc.appLogger.Error(err)
+		return 0, err
 	}
 
 	distance, err := uc.geo.GetDistanceBetweenPoints(req.FromPoint.Lat, req.FromPoint.Lon, req.ToPoint.Lat, req.ToPoint.Lon)
@@ -39,6 +46,7 @@ func (uc *PriceEstimatorUseCase) EstimateDeliveryPrice(ctx context.Context, req 
 	}
 	price, err := uc.service.EstimateDeliveryPrice(body)
 	if err != nil {
+		uc.appLogger.Error(err)
 		return 0, err
 	}
 

@@ -5,31 +5,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dacore-x/truckly/config"
-	"github.com/dacore-x/truckly/internal/dto"
 	"io"
-	"log"
 	"net/http"
+
+	"github.com/dacore-x/truckly/config"
+	"github.com/dacore-x/truckly/pkg/logger"
+
+	"github.com/dacore-x/truckly/internal/dto"
 )
 
 type PriceEstimator struct {
 	ServicePort int
+	appLogger   *logger.Logger
 }
 
-func New(cfg *config.SERVICES) *PriceEstimator {
+func New(cfg *config.SERVICES, l *logger.Logger) *PriceEstimator {
 	return &PriceEstimator{
 		ServicePort: cfg.Ports["PriceEstimator"],
+		appLogger:   l,
 	}
 }
 
 // doRequest making request to URL in args and returns *http.Response
 func doRequest(method, URL string, body io.Reader) (*http.Response, error) {
-	//ctx := context.TODO()
 	switch method {
 	case http.MethodPost:
 		r, err := http.Post(URL, "application/json", body)
 		if err != nil {
-			log.Println("error creating request")
 			return nil, err
 		}
 		return r, nil
@@ -44,11 +46,20 @@ func (p *PriceEstimator) EstimateDeliveryPrice(body *dto.EstimatePriceInternalRe
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(body)
 	if err != nil {
-		return 0, errors.New("error encoding body")
+		err := errors.New("error encoding body")
+		p.appLogger.Error(err)
+		return 0, err
 	}
 	result, err := doRequest(http.MethodPost, URL, &buf)
+	if err != nil {
+		p.appLogger.Errorf("microservice.doRequest: %v", err)
+		return 0, err
+	}
+
 	if result.StatusCode != 200 {
-		return 0, errors.New("internal server error")
+		err := errors.New("internal server error")
+		p.appLogger.Error(err)
+		return 0, err
 	}
 
 	response := &dto.EstimatePriceResponse{}
@@ -58,8 +69,9 @@ func (p *PriceEstimator) EstimateDeliveryPrice(body *dto.EstimatePriceInternalRe
 	result.Body.Close()
 
 	if err != nil {
-		//log.Println("error unmarshalling body")
-		return 0, errors.New("error unmarshalling body")
+		err := errors.New("error unmarshalling body")
+		p.appLogger.Error(err)
+		return 0, err
 	}
 
 	return response.Price, nil
