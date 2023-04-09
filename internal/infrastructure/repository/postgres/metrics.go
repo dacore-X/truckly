@@ -135,3 +135,35 @@ func (mr *MetricsRepo) GetDeliveryTypesPercentPerDay(ctx context.Context) (*dto.
 
 	return resp, nil
 }
+
+// GetCurrentDeliveries fetches list of brief information about current deliveries
+// from the database and returns it
+func (mr *MetricsRepo) GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error) {
+	query := `
+		SELECT from_longitude, from_latitude, price
+		FROM deliveries INNER JOIN geo ON deliveries.geo_id = geo.id
+		WHERE status_id = 2
+	`
+	rows, err := mr.QueryContext(context.Background(), query)
+	if err != nil {
+		mr.appLogger.Error(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	currentDeliveries := []*dto.CurrentDelivery{}
+
+	for rows.Next() {
+		info := &dto.CurrentDelivery{
+			FromPoint: &dto.PointResponse{},
+		}
+		if err := rows.Scan(&info.FromPoint.Lat, &info.FromPoint.Lon, &info.Price); err != nil {
+			mr.appLogger.Error(err)
+			return nil, err
+		}
+		currentDeliveries = append(currentDeliveries, info)
+	}
+	list := &dto.MetricsDeliveriesResponse{Deliveries: currentDeliveries}
+
+	return list, nil
+}

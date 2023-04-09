@@ -42,7 +42,8 @@ type (
 
 	// Metrics interface represents metrics usecases
 	Metrics interface {
-		GetMetrics(ctx context.Context) (*dto.MetricsPerDayResponse, error)
+		GetMetrics(context.Context) (*dto.MetricsPerDayResponse, error)
+		GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error)
 	}
 
 	// MetricsRepo interface represents metrics' repository contract
@@ -51,6 +52,7 @@ type (
 		GetRevenuePerDay(context.Context) (*dto.RevenuePerDay, error)
 		GetNewClientsCntPerDay(context.Context) (*dto.NewClientsCntPerDay, error)
 		GetDeliveryTypesPercentPerDay(context.Context) (*dto.DeliveryTypesPercentPerDay, error)
+		GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error)
 	}
 
 	Geo interface {

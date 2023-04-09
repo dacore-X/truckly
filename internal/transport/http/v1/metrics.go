@@ -21,8 +21,12 @@ func newMetricsHandlers(superGroup *gin.RouterGroup, u usecase.Metrics, m *middl
 	handler := &metricsHandlers{u}
 
 	metricsGroup := superGroup.Group("/metrics")
+	metricsGroup.Use(m.RequireAuth)
+	metricsGroup.Use(m.RequireNoBan)
+	metricsGroup.Use(m.RequireAdmin)
 	{
-		metricsGroup.GET("/", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.metricsPerDay)
+		metricsGroup.GET("/", handler.metricsPerDay)
+		metricsGroup.GET("/map", handler.currentDeliveries)
 	}
 }
 
@@ -40,4 +44,18 @@ func (h *metricsHandlers) metricsPerDay(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"metrics": metrics,
 	})
+}
+
+// currentDeliveries handler gets all current deliveries
+func (h *metricsHandlers) currentDeliveries(c *gin.Context) {
+	list, err := h.GetCurrentDeliveries(context.Background())
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, list)
 }

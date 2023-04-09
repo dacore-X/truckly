@@ -68,3 +68,12 @@ func (uc *MetricsUseCase) GetMetrics(ctx context.Context) (*dto.MetricsPerDayRes
 
 	return resp, nil
 }
+
+// GetCurrentDeliveries usecase gets list of brief information about current deliveries
+func (uc *MetricsUseCase) GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error) {
+	list, err := uc.repo.GetCurrentDeliveries(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return list, err
+}

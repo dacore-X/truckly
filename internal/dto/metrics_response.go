@@ -37,3 +37,16 @@ type MetricsPerDayResponse struct {
 	NewClientsCnt        int                         `json:"new_clients_cnt"`
 	DeliveryTypesPercent *DeliveryTypesPercentPerDay `json:"delivery_types_percent"`
 }
+
+// CurrentDeliveries represents the response body
+// with brief information about current delivery
+type CurrentDelivery struct {
+	FromPoint *PointResponse `json:"from_point"`
+	Price     float64        `json:"price"`
+}
+
+// MetricsDeliveriesResponse represents the response body
+// with list of brief information about current deliveries
+type MetricsDeliveriesResponse struct {
+	Deliveries []*CurrentDelivery `json:"current_deliveries"`
+}
