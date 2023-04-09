@@ -2,9 +2,14 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"runtime"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 // PG is a struct for storing Postgres connection settings
@@ -26,10 +31,21 @@ type GEO struct {
 	BaseURLRouting string
 }
 
+// LOG is a struct for storing Logrus configatrion settings
+type LOG struct {
+	LogrusFormatter *logrus.TextFormatter
+}
+
+type SERVICES struct {
+	Ports map[string]int
+}
+
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
 	*GEO
+	*SERVICES
+	*LOG
 }
 
 // New returns application config
@@ -78,6 +94,22 @@ func New() (*Config, error) {
 	if !ok {
 		return nil, errors.New("BASE_URL_ROUTING is not set")
 	}
+
+	var mainPort int
+
+	port1 := os.Getenv("PORT")
+	if port1 != "" {
+		mainPort, _ = strconv.Atoi(port1)
+	} else {
+		mainPort = 8080
+	}
+
+	port2, ok := os.LookupEnv("PRICE_ESTIMATOR_PORT")
+	if !ok {
+		return nil, errors.New("PRICE_ESTIMATOR_PORT is not set")
+	}
+	priceEstimatorPort, _ := strconv.Atoi(port2)
+
 	return &Config{
 		PG: &PG{
 			PostgresUser:     user,
@@ -91,6 +123,45 @@ func New() (*Config, error) {
 
 			BaseURLCatalog: baseURLCatalog,
 			BaseURLRouting: baseURLRouting,
+		},
+		SERVICES: &SERVICES{
+			Ports: map[string]int{
+				"Main Application": mainPort,
+				"PriceEstimator":   priceEstimatorPort,
+			},
+		},
+		LOG: &LOG{
+			LogrusFormatter: &logrus.TextFormatter{
+				TimestampFormat: "02-01-2006 15:04:05",
+				FullTimestamp:   true,
+				ForceColors:     true,
+				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+					// Format string to get layer name
+					i := strings.Index(f.File, "truckly/")
+					layerPath, _ := strings.CutPrefix(f.File[i:], "truckly/")
+					layerArr := strings.Split(layerPath, "/")
+					layerMsg := fmt.Sprintf("level:%s/%s", layerArr[0], layerArr[1])
+
+					// Split string to get file name
+					pathArr := strings.Split(f.File, "/")
+					fileName := pathArr[len(pathArr)-1]
+
+					// Split string to get func name
+					funcArr := strings.Split(f.Function, ".")
+					funcName := funcArr[len(funcArr)-1]
+
+					// Logger message
+					var msg string
+					if layerMsg != "level:internal/transport" && fileName != "logger.go" {
+						msg = fmt.Sprintf("%30s | %s:%d | func:%s |", layerMsg, fileName, f.Line, funcName)
+					} else {
+						msg = fmt.Sprintf("%30s", layerMsg)
+					}
+
+					// Return info
+					return "", msg
+				},
+			},
 		},
 	}, nil
 }

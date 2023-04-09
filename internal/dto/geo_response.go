@@ -18,8 +18,9 @@ type Meta struct {
 
 // Item is a struct for JSON decoding "Item" field
 type Item struct {
-	Address string        `json:"address_name"`
-	Point   PointResponse `json:"point"`
+	Address  string        `json:"address_name"`
+	FullName string        `json:"full_name"`
+	Point    PointResponse `json:"point"`
 }
 
 // PointResponse is a struct of point Geo position with latitude and longitude

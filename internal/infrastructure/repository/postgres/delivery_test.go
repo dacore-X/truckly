@@ -6,7 +6,9 @@ import (
 	"database/sql/driver"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/dacore-x/truckly/internal/entity"
+	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/go-test/deep"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"regexp"
 	"testing"
@@ -16,8 +18,8 @@ func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	defer db.Close()
-
-	repo := NewDeliveryRepo(db)
+	testLogger := logrus.New()
+	repo := NewDeliveryRepo(db, logger.New(testLogger))
 
 	type args struct {
 		ctx      context.Context
@@ -124,7 +126,8 @@ func TestDeliveryRepo_CreateDeliveryRollback(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewDeliveryRepo(db)
+	testLogger := logrus.New()
+	repo := NewDeliveryRepo(db, logger.New(testLogger))
 
 	type args struct {
 		ctx      context.Context

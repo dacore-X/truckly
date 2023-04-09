@@ -30,19 +30,46 @@ type (
 		GetUserMeta(context.Context, int) (*dto.UserMetaResponse, error)
 	}
 
+	// Delivery interface represents delivery usecases
 	Delivery interface {
 		CreateDelivery(context.Context, *entity.Delivery) error
+		GetDeliveryByID(ctx context.Context, clientID int, deliveryID int) (*dto.DeliveryFullInfoResponse, error)
+		GetDeliveriesByGeolocation(ctx context.Context, query *dto.DeliveryListGeolocationQuery) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByClientID(ctx context.Context, clientID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByCourierID(ctx context.Context, courierID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
+		ChangeDeliveryStatus(ctx context.Context, courierID, deliveryID, statusID int) error
 	}
 
 	// DeliveryRepo interface represents delivery's repository contract
 	DeliveryRepo interface {
 		CreateDelivery(context.Context, *entity.Delivery) error
+		GetDeliveryByID(ctx context.Context, clientID int, deliveryID int) (*dto.DeliveryFullInfoResponse, error)
+		GetDeliveriesByGeolocation(context.Context, *dto.DeliveryListGeolocationQuery, float64) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByClientID(ctx context.Context, clientID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByCourierID(ctx context.Context, courierID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
+		GetActiveDeliveryAmount(ctx context.Context, courierID int) (int, error)
+		IsDeliveryPerformer(ctx context.Context, courierID, deliveryID int) (bool, error)
+		ChangeDeliveryStatus(ctx context.Context, deliveryID, statusID int) error
 	}
 
+	Geo interface {
+		GetCoordsByObject(ctx context.Context, q string) (*dto.PointResponse, error)
+		GetObjectByCoords(ctx context.Context, lat, lon float64) (string, error)
+	}
 	// GeoWebAPI interface represents Geo API contract
 	GeoWebAPI interface {
 		GetCoordsByObject(q string) (*dto.PointResponse, error)
 		GetObjectByCoords(lat, lon float64) (string, error)
 		GetDistanceBetweenPoints(latFrom, lonFrom, latTo, lonTo float64) (float64, error)
+	}
+
+	PriceEstimator interface {
+		EstimateDeliveryPrice(ctx context.Context, body *dto.EstimatePriceRequestBody) (float64, error)
+	}
+
+	PriceEstimatorService interface {
+		EstimateDeliveryPrice(*dto.EstimatePriceInternalRequestBody) (float64, error)
 	}
 )

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/dacore-x/truckly/pkg/logger"
+
 	"github.com/dacore-x/truckly/internal/dto"
 )
 
@@ -13,16 +15,18 @@ import (
 // related to user's requests
 type UserRepo struct {
 	*sql.DB
+	appLogger *logger.Logger
 }
 
-func NewUserRepo(db *sql.DB) *UserRepo {
-	return &UserRepo{db}
+func NewUserRepo(db *sql.DB, l *logger.Logger) *UserRepo {
+	return &UserRepo{db, l}
 }
 
 // CreateUserTx creates a new user record in the database with meta data attached to it
 func (ur *UserRepo) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
 	tx, err := ur.Begin()
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	defer tx.Rollback()
@@ -37,6 +41,7 @@ func (ur *UserRepo) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequest
 		ctx, query1, req.Surname, req.Name, req.Patronymic, req.Email, req.PhoneNumber, req.Password,
 	).Scan(&lastInsertID)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 
@@ -46,17 +51,22 @@ func (ur *UserRepo) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequest
 	`
 	result, err := tx.ExecContext(ctx, query2, lastInsertID, req.IsCourier)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	if rows != 1 {
-		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		err := fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		ur.appLogger.Error(err)
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	return nil
@@ -71,14 +81,18 @@ func (ur *UserRepo) BanUser(ctx context.Context, id int) error {
 	`
 	result, err := ur.ExecContext(ctx, query, id)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	if rows != 1 {
-		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		err := fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		ur.appLogger.Error(err)
+		return err
 	}
 	return nil
 }
@@ -92,14 +106,18 @@ func (ur *UserRepo) UnbanUser(ctx context.Context, id int) error {
 	`
 	result, err := ur.ExecContext(ctx, query, id)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
+		ur.appLogger.Error(err)
 		return err
 	}
 	if rows != 1 {
-		return fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		err := fmt.Errorf("expected to affect 1 row, affected %d", rows)
+		ur.appLogger.Error(err)
+		return err
 	}
 	return nil
 }
@@ -116,6 +134,7 @@ func (ur *UserRepo) GetUserByID(ctx context.Context, id int) (*dto.UserMeRespons
 	resp := &dto.UserMeResponse{}
 	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return nil, err
 	}
 	return resp, nil
@@ -133,6 +152,7 @@ func (ur *UserRepo) GetUserPrivateByID(ctx context.Context, id int) (*dto.UserIn
 	resp := &dto.UserInfoResponse{}
 	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return nil, err
 	}
 	return resp, nil
@@ -150,6 +170,7 @@ func (ur *UserRepo) GetUserPrivateByEmail(ctx context.Context, email string) (*d
 	resp := &dto.UserInfoResponse{}
 	err := row.Scan(&resp.ID, &resp.Email, &resp.Password)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return nil, err
 	}
 	return resp, nil
@@ -167,6 +188,7 @@ func (ur *UserRepo) GetUserMeta(ctx context.Context, id int) (*dto.UserMetaRespo
 	resp := &dto.UserMetaResponse{}
 	err := row.Scan(&resp.UserID, &resp.IsAdmin, &resp.IsCourier, &resp.IsBanned, &resp.Rating)
 	if err != nil {
+		ur.appLogger.Error(err)
 		return nil, err
 	}
 	return resp, nil

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"github.com/dacore-x/truckly/pkg/logger"
+	"github.com/sirupsen/logrus"
 	"regexp"
 	"testing"
 	"time"
@@ -24,7 +26,8 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -159,7 +162,8 @@ func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -233,7 +237,8 @@ func TestPostgres_BanUser(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -292,7 +297,8 @@ func TestPostgres_UnbanUser(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -351,7 +357,8 @@ func TestPostgres_GetUserByID(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// time.Time variable for tests
 	now := time.Now()
@@ -426,7 +433,8 @@ func TestPostgres_GetUserPrivateByID(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -494,7 +502,8 @@ func TestPostgres_GetUserPrivateByEmail(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
@@ -562,7 +571,8 @@ func TestUser_GetUserMeta(t *testing.T) {
 	defer db.Close()
 
 	// Create repo
-	repo := NewUserRepo(db)
+	testLogger := logrus.New()
+	repo := NewUserRepo(db, logger.New(testLogger))
 
 	// Required args for tests
 	type args struct {
