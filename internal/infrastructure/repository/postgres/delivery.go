@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/dacore-x/truckly/pkg/logger"
+
 	"github.com/dacore-x/truckly/internal/dto"
 	"github.com/dacore-x/truckly/internal/entity"
-	"github.com/dacore-x/truckly/pkg/logger"
 )
 
 // DeliveryRepo is a struct that provides
@@ -15,6 +16,7 @@ import (
 // related to `Delivery` requests
 type DeliveryRepo struct {
 	*sql.DB
+	appLogger *logger.Logger
 }
 
 func NewDeliveryRepo(db *sql.DB, l *logger.Logger) *DeliveryRepo {

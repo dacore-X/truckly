@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"github.com/dacore-x/truckly/pkg/logger"
-	"github.com/sirupsen/logrus"
 	"regexp"
 	"testing"
 	"time"
