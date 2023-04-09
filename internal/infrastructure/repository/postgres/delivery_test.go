@@ -9,9 +9,9 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/dacore-x/truckly/internal/entity"
+	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/go-test/deep"
 	"github.com/sirupsen/logrus"
-	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/stretchr/testify/require"
 )
 

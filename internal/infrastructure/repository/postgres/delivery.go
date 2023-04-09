@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/dacore-x/truckly/internal/dto"
-	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/dacore-x/truckly/internal/entity"
+	"github.com/dacore-x/truckly/pkg/logger"
 )
 
 // DeliveryRepo is a struct that provides
