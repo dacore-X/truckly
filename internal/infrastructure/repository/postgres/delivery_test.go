@@ -8,12 +8,11 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/dacore-x/truckly/pkg/logger"
+	"github.com/dacore-x/truckly/internal/entity"
 	"github.com/go-test/deep"
 	"github.com/sirupsen/logrus"
+	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/stretchr/testify/require"
-
-	"github.com/dacore-x/truckly/internal/entity"
 )
 
 func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
@@ -60,7 +59,6 @@ func TestDeliveryRepo_CreateDeliverySuccess(t *testing.T) {
 			rows:   sqlmock.NewRows([]string{"id"}).AddRow(1),
 			result: sqlmock.NewResult(1, 1),
 		},
-
 		{
 			name: "delivery usual case without type id",
 			args: args{

@@ -33,11 +33,25 @@ type (
 	// Delivery interface represents delivery usecases
 	Delivery interface {
 		CreateDelivery(context.Context, *entity.Delivery) error
+		GetDeliveryByID(ctx context.Context, clientID int, deliveryID int) (*dto.DeliveryFullInfoResponse, error)
+		GetDeliveriesByGeolocation(ctx context.Context, query *dto.DeliveryListGeolocationQuery) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByClientID(ctx context.Context, clientID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByCourierID(ctx context.Context, courierID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
+		ChangeDeliveryStatus(ctx context.Context, courierID, deliveryID, statusID int) error
 	}
 
 	// DeliveryRepo interface represents delivery's repository contract
 	DeliveryRepo interface {
 		CreateDelivery(context.Context, *entity.Delivery) error
+		GetDeliveryByID(ctx context.Context, clientID int, deliveryID int) (*dto.DeliveryFullInfoResponse, error)
+		GetDeliveriesByGeolocation(context.Context, *dto.DeliveryListGeolocationQuery, float64) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByClientID(ctx context.Context, clientID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		GetDeliveriesByCourierID(ctx context.Context, courierID int, page int) ([]*dto.DeliveryBriefResponse, error)
+		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
+		GetActiveDeliveryAmount(ctx context.Context, courierID int) (int, error)
+		IsDeliveryPerformer(ctx context.Context, courierID, deliveryID int) (bool, error)
+		ChangeDeliveryStatus(ctx context.Context, deliveryID, statusID int) error
 	}
 
 	Geo interface {

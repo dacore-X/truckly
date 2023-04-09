@@ -132,9 +132,9 @@ func New() (*Config, error) {
 		},
 		LOG: &LOG{
 			LogrusFormatter: &logrus.TextFormatter{
-				TimestampFormat:        "02-01-2006 15:04:05",
-				FullTimestamp:          true,
-				ForceColors:            true,
+				TimestampFormat: "02-01-2006 15:04:05",
+				FullTimestamp:   true,
+				ForceColors:     true,
 				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 					// Format string to get layer name
 					i := strings.Index(f.File, "truckly/")
