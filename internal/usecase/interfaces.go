@@ -2,15 +2,15 @@ package usecase
 
 import (
 	"context"
-	"github.com/dacore-x/truckly/internal/entity"
 
 	"github.com/dacore-x/truckly/internal/dto"
+	"github.com/dacore-x/truckly/internal/entity"
 )
 
 type (
 	// User interface represents user's usecases
 	User interface {
-		CreateUserTx(context.Context, *dto.UserSignUpRequestBody) error
+		CreateUser(context.Context, *dto.UserSignUpRequestBody) error
 		BanUser(context.Context, int) error
 		UnbanUser(context.Context, int) error
 		GetUserByID(context.Context, int) (*dto.UserMeResponse, error)
@@ -21,7 +21,7 @@ type (
 
 	// UserRepo interface represents user's repository contract
 	UserRepo interface {
-		CreateUserTx(context.Context, *dto.UserSignUpRequestBody) error
+		CreateUser(context.Context, *dto.UserSignUpRequestBody) error
 		BanUser(context.Context, int) error
 		UnbanUser(context.Context, int) error
 		GetUserByID(context.Context, int) (*dto.UserMeResponse, error)
@@ -52,6 +52,21 @@ type (
 		GetActiveDeliveryAmount(ctx context.Context, courierID int) (int, error)
 		IsDeliveryPerformer(ctx context.Context, courierID, deliveryID int) (bool, error)
 		ChangeDeliveryStatus(ctx context.Context, deliveryID, statusID int) error
+	}
+
+	// Metrics interface represents metrics usecases
+	Metrics interface {
+		GetMetrics(context.Context) (*dto.MetricsPerDayResponse, error)
+		GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error)
+	}
+
+	// MetricsRepo interface represents metrics' repository contract
+	MetricsRepo interface {
+		GetDeliveriesCntPerDay(context.Context) (*dto.DeliveriesCntPerDay, error)
+		GetRevenuePerDay(context.Context) (*dto.RevenuePerDay, error)
+		GetNewClientsCntPerDay(context.Context) (*dto.NewClientsCntPerDay, error)
+		GetDeliveryTypesPercentPerDay(context.Context) (*dto.DeliveryTypesPercentPerDay, error)
+		GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error)
 	}
 
 	Geo interface {

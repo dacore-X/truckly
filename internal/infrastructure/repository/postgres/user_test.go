@@ -151,7 +151,7 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 			mock.ExpectCommit()
 
 			// Run the create transaction function
-			err := repo.CreateUserTx(context.Background(), tc.args.body)
+			err := repo.CreateUser(context.Background(), tc.args.body)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 		})
 	}
@@ -226,7 +226,7 @@ func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 			mock.ExpectRollback()
 
 			// Run the create transaction function
-			err := repo.CreateUserTx(context.Background(), tc.args.body)
+			err := repo.CreateUser(context.Background(), tc.args.body)
 			require.Nil(t, deep.Equal(tc.wantErr, err))
 		})
 	}
