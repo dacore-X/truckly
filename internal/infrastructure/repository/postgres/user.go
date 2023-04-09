@@ -22,8 +22,8 @@ func NewUserRepo(db *sql.DB, l *logger.Logger) *UserRepo {
 	return &UserRepo{db, l}
 }
 
-// CreateUserTx creates a new user record in the database with meta data attached to it
-func (ur *UserRepo) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
+// CreateUser creates a new user record in the database with meta data attached to it
+func (ur *UserRepo) CreateUser(ctx context.Context, req *dto.UserSignUpRequestBody) error {
 	tx, err := ur.Begin()
 	if err != nil {
 		ur.appLogger.Error(err)

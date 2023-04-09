@@ -22,9 +22,9 @@ func NewUserUseCase(r UserRepo, l *logger.Logger) *UserUseCase {
 	}
 }
 
-// CreateUserTx usecase creates new user account
-func (uc *UserUseCase) CreateUserTx(ctx context.Context, req *dto.UserSignUpRequestBody) error {
-	err := uc.repo.CreateUserTx(ctx, req)
+// CreateUser usecase creates new user account
+func (uc *UserUseCase) CreateUser(ctx context.Context, req *dto.UserSignUpRequestBody) error {
+	err := uc.repo.CreateUser(ctx, req)
 	if err != nil {
 		uc.appLogger.Error(err)
 		return err

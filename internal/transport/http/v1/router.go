@@ -13,15 +13,24 @@ import (
 type Handlers struct {
 	userHandlers
 	deliveryHandlers
+	metricsHandlers
 	geoHandlers
 	priceEstimatorHandlers
 	*middleware.Middlewares
 }
 
-func NewHandlers(u usecase.User, d usecase.Delivery, g usecase.Geo, p usecase.PriceEstimator, l *logger.Logger) *Handlers {
+func NewHandlers(
+	u usecase.User,
+	d usecase.Delivery,
+	m usecase.Metrics,
+	g usecase.Geo,
+	p usecase.PriceEstimator,
+	l *logger.Logger,
+) *Handlers {
 	return &Handlers{
 		userHandlers{u},
 		deliveryHandlers{d},
+		metricsHandlers{m},
 		geoHandlers{g},
 		priceEstimatorHandlers{p},
 		middleware.New(u, l),
@@ -36,6 +45,7 @@ func (h *Handlers) NewRouter(r *gin.Engine) {
 	{
 		newUserHandlers(superGroup, h.userHandlers, h.Middlewares)
 		newDeliveryHandlers(superGroup, h.deliveryHandlers, h.Middlewares)
+		newMetricsHandlers(superGroup, h.metricsHandlers, h.Middlewares)
 		newGeoHandlers(superGroup, h.geoHandlers, h.Middlewares)
 		newPriceEstimatorHandlers(superGroup, h.priceEstimatorHandlers, h.Middlewares)
 	}

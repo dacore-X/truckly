@@ -39,6 +39,11 @@ func Run(cfg *config.Config) {
 		appLogger,
 	)
 
+	metricsUseCase := usecase.NewMetricsUseCase(
+		postgres.NewMetricsRepo(conn, appLogger),
+		appLogger,
+	)
+
 	geoWebAPI := webapi.New(cfg.GEO, appLogger)
 	priceEstimatorService := microservice.New(cfg.SERVICES, appLogger)
 
@@ -55,7 +60,7 @@ func Run(cfg *config.Config) {
 	// Create HTTP server using Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	h := v1.NewHandlers(userUseCase, deliveryUseCase, geoUseCase, priceEstimatorUseCase, appLogger)
+	h := v1.NewHandlers(userUseCase, deliveryUseCase, metricsUseCase, geoUseCase, priceEstimatorUseCase, appLogger)
 	h.NewRouter(r)
 
 	// Log all running services ports

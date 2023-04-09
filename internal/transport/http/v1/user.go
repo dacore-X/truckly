@@ -79,6 +79,17 @@ func (h *userHandlers) signUp(c *gin.Context) {
 		return
 	}
 
+	// Check if the user with specified email from req body already exists in database
+	record, _ := h.GetUserPrivateByEmail(context.Background(), body.Email)
+	if record != nil {
+		err := fmt.Errorf("user with this email already exists")
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	// Hash password
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
@@ -92,7 +103,7 @@ func (h *userHandlers) signUp(c *gin.Context) {
 	body.Password = string(hash)
 
 	// Create user
-	err = h.CreateUserTx(context.Background(), &body)
+	err = h.CreateUser(context.Background(), &body)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{
