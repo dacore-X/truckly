@@ -142,7 +142,7 @@ func (mr *MetricsRepo) GetCurrentDeliveries(context.Context) (*dto.MetricsDelive
 	query := `
 		SELECT from_longitude, from_latitude, price
 		FROM deliveries INNER JOIN geo ON deliveries.geo_id = geo.id
-		WHERE status_id = 2
+		WHERE status_id = 1
 	`
 	rows, err := mr.QueryContext(context.Background(), query)
 	if err != nil {
