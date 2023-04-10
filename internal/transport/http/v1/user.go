@@ -57,7 +57,6 @@ func (h *userHandlers) me(c *gin.Context) {
 		ID:          user.ID,
 		Surname:     user.Surname,
 		Name:        user.Name,
-		Patronymic:  user.Patronymic,
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
 		CreatedAt:   user.CreatedAt,

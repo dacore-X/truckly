@@ -32,13 +32,13 @@ func (ur *UserRepo) CreateUser(ctx context.Context, req *dto.UserSignUpRequestBo
 	defer tx.Rollback()
 
 	query1 := `
-		INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
-		VALUES($1, $2, $3, $4, $5, $6) 
+		INSERT INTO users(surname, name, email, phone_number, hash_password)
+		VALUES($1, $2, $3, $4, $5) 
 		RETURNING id
 	`
 	lastInsertID := 0
 	err = tx.QueryRowContext(
-		ctx, query1, req.Surname, req.Name, req.Patronymic, req.Email, req.PhoneNumber, req.Password,
+		ctx, query1, req.Surname, req.Name, req.Email, req.PhoneNumber, req.Password,
 	).Scan(&lastInsertID)
 	if err != nil {
 		ur.appLogger.Error(err)
@@ -125,14 +125,14 @@ func (ur *UserRepo) UnbanUser(ctx context.Context, id int) error {
 // GetUserByID fetches user's account data from the database and returns it
 func (ur *UserRepo) GetUserByID(ctx context.Context, id int) (*dto.UserMeResponse, error) {
 	query := `
-		SELECT id, surname, name, patronymic, email, phone_number, created_at
+		SELECT id, surname, name, email, phone_number, created_at
 		FROM users
 		WHERE id=$1
 	`
 	row := ur.QueryRowContext(ctx, query, id)
 
 	resp := &dto.UserMeResponse{}
-	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Patronymic, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
+	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
 	if err != nil {
 		ur.appLogger.Error(err)
 		return nil, err

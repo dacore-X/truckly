@@ -50,7 +50,6 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 				body: &dto.UserSignUpRequestBody{
 					Surname:     "Николаев",
 					Name:        "Николай",
-					Patronymic:  "Николаевич",
 					Email:       "nikolaev@mail.ru",
 					PhoneNumber: "89157674599",
 					Password:    "password123",
@@ -67,7 +66,6 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 				body: &dto.UserSignUpRequestBody{
 					Surname:     "Дмитриев",
 					Name:        "Дмитрий",
-					Patronymic:  "Дмитриевич",
 					Email:       "dmitriev@bk.ru",
 					PhoneNumber: "89850357751",
 					Password:    "mypassword",
@@ -84,7 +82,6 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 				body: &dto.UserSignUpRequestBody{
 					Surname:     "Романов",
 					Name:        "Роман",
-					Patronymic:  "Романович",
 					Email:       "romanov@yandex.ru",
 					PhoneNumber: "89456041022",
 					Password:    "pswd1414",
@@ -101,7 +98,6 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 				body: &dto.UserSignUpRequestBody{
 					Surname:     "Эдуардов",
 					Name:        "Эдуард",
-					Patronymic:  "Эдуардович",
 					Email:       "eduardov@yandex.ru",
 					PhoneNumber: "89406432826",
 					Password:    "eduardpassword",
@@ -122,14 +118,13 @@ func TestPostgres_CreateUserTxNoRollback(t *testing.T) {
 			// Expect query to create a new user record, return last inserted id
 			// and either return error or not, match it with regexp
 			mock.ExpectQuery(regexp.QuoteMeta(`
-					INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
-					VALUES($1, $2, $3, $4, $5, $6) 
+					INSERT INTO users(surname, name, email, phone_number, hash_password)
+					VALUES($1, $2, $3, $4, $5) 
 					RETURNING id
 				`)).
 				WithArgs(
 					tc.args.body.Surname,
 					tc.args.body.Name,
-					tc.args.body.Patronymic,
 					tc.args.body.Email,
 					tc.args.body.PhoneNumber,
 					tc.args.body.Password).
@@ -185,7 +180,6 @@ func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 				body: &dto.UserSignUpRequestBody{
 					Surname:     "Карпов",
 					Name:        "Александр",
-					Patronymic:  "Евгеньевич",
 					Email:       "karpov@inbox.ru",
 					PhoneNumber: "89701010166",
 					Password:    "karpovpassword",
@@ -206,14 +200,13 @@ func TestPostgres_CreateUserTxWithRollback(t *testing.T) {
 			// Expect query to create a new user record, return last inserted id
 			// and either return error or not, match it with regexp
 			mock.ExpectQuery(regexp.QuoteMeta(`
-				INSERT INTO users(surname, name, patronymic, email, phone_number, hash_password)
-				VALUES($1, $2, $3, $4, $5, $6) 
+				INSERT INTO users(surname, name, email, phone_number, hash_password)
+				VALUES($1, $2, $3, $4, $5) 
 				RETURNING id
 			`)).
 				WithArgs(
 					tc.args.body.Surname,
 					tc.args.body.Name,
-					tc.args.body.Patronymic,
 					tc.args.body.Email,
 					tc.args.body.PhoneNumber,
 					tc.args.body.Password).
@@ -380,14 +373,13 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			name: "user is found",
 			args: args{
 				id: 1,
-				rows: sqlmock.NewRows([]string{"id", "surname", "name", "patronymic", "email", "phone_number", "created_at"}).
-					AddRow(1, "Иванов", "Иван", "Иванович", "ivanov@yandex.ru", "89157650030", now),
+				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at"}).
+					AddRow(1, "Иванов", "Иван", "ivanov@yandex.ru", "89157650030", now),
 			},
 			want: &dto.UserMeResponse{
 				ID:          1,
 				Surname:     "Иванов",
 				Name:        "Иван",
-				Patronymic:  "Иванович",
 				Email:       "ivanov@yandex.ru",
 				PhoneNumber: "89157650030",
 				CreatedAt:   now,
@@ -397,8 +389,8 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			name: "user is not found",
 			args: args{
 				id: 2,
-				rows: sqlmock.NewRows([]string{"id", "surname", "name", "patronymic", "email", "phone_number", "created_at"}).
-					AddRow(nil, nil, nil, nil, nil, nil, nil),
+				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at"}).
+					AddRow(nil, nil, nil, nil, nil, nil),
 			},
 			wantErr: sql.ErrNoRows,
 		},
@@ -410,7 +402,7 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			// Expect query to fetch user's account data and
 			// either return error or not, match it with regexp
 			mock.ExpectQuery(regexp.QuoteMeta(`
-				SELECT id, surname, name, patronymic, email, phone_number, created_at
+				SELECT id, surname, name, email, phone_number, created_at
 				FROM users
 				WHERE id=$1
 			`)).

@@ -8,7 +8,6 @@ type UserMeResponse struct {
 	ID          int       `json:"id"`
 	Surname     string    `json:"surname"`
 	Name        string    `json:"name"`
-	Patronymic  string    `json:"patronymic"`
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number"`
 	CreatedAt   time.Time `json:"created_at"`
