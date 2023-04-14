@@ -21,45 +21,55 @@ func NewMetricsRepo(db *sql.DB, l *logger.Logger) *MetricsRepo {
 // GetDeliveriesCntPerDay fetches new and completed deliveries' counts per last 24 hours
 // from the database and returns it
 func (mr *MetricsRepo) GetDeliveriesCntPerDay(ctx context.Context) (*dto.DeliveriesCntPerDay, error) {
-	query := `
-		SELECT COUNT(*) as cnt
-		FROM deliveries
-		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400 AND status_id IN(1, 3)
-		group by status_id
-		order by status_id
-	`
-	rows, err := mr.QueryContext(ctx, query)
+	tx, err := mr.Begin()
 	if err != nil {
 		mr.appLogger.Error(err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer tx.Rollback()
 
-	// Slice with calculated counts from sql query
-	deliveryCounts := []int{}
+	resp := &dto.DeliveriesCntPerDay{}
 
-	for rows.Next() {
-		var cnt int
-		if err := rows.Scan(&cnt); err != nil {
-			mr.appLogger.Error(err)
-			return nil, err
-		}
-		deliveryCounts = append(deliveryCounts, cnt)
+	query := `
+		SELECT COUNT(*) as cnt
+		FROM deliveries
+		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400 AND status_id=$1
+		group by status_id
+		order by status_id
+	`
+	// Count new deliveries per last 24 hours
+	row1 := mr.QueryRowContext(ctx, query, 1)
+
+	err = row1.Scan(&resp.NewCnt)
+	if err == sql.ErrNoRows {
+		resp.NewCnt = 0
+	} else if err != nil {
+		mr.appLogger.Error(err)
+		return nil, err
 	}
 
-	// Attach calculated counts to response body's fields respectively
-	resp := &dto.DeliveriesCntPerDay{
-		NewCnt:       deliveryCounts[0],
-		CompletedCnt: deliveryCounts[1],
+	row2 := mr.QueryRowContext(ctx, query, 3)
+
+	// Count completed deliveries per last 24 hours
+	err = row2.Scan(&resp.CompletedCnt)
+	if err == sql.ErrNoRows {
+		resp.CompletedCnt = 0
+	} else if err != nil {
+		mr.appLogger.Error(err)
+		return nil, err
 	}
 
+	if err = tx.Commit(); err != nil {
+		mr.appLogger.Error(err)
+		return nil, err
+	}
 	return resp, nil
 }
 
 // GetRevenuePerDay fetches revenue sum per last 24 hours from the database and returns it
 func (mr *MetricsRepo) GetRevenuePerDay(ctx context.Context) (*dto.RevenuePerDay, error) {
 	query := `
-		SELECT SUM(price)
+		SELECT COALESCE(SUM(price), 0) AS sum
 		FROM deliveries
 		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400
 	`
@@ -99,8 +109,8 @@ func (mr *MetricsRepo) GetNewClientsCntPerDay(ctx context.Context) (*dto.NewClie
 // from the database and returns it
 func (mr *MetricsRepo) GetDeliveryTypesPercentPerDay(ctx context.Context) (*dto.DeliveryTypesPercentPerDay, error) {
 	query := `
-		SELECT ROUND(COUNT(type_id) / SUM(COUNT(type_id)) OVER() * 100, 3)
-		FROM deliveries 
+		SELECT type_id, ROUND(COUNT(type_id) / SUM(COUNT(type_id)) OVER() * 100, 3)
+		FROM deliveries
 		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400
 		GROUP BY type_id
 		ORDER BY type_id 
@@ -113,15 +123,21 @@ func (mr *MetricsRepo) GetDeliveryTypesPercentPerDay(ctx context.Context) (*dto.
 	defer rows.Close()
 
 	// Slice with calculated percents from sql query
-	percents := []float64{}
-
+	// Count is 0 by default if there is no deliveries with such delivery type ID per last 24 hours
+	// Each index stands for n-1 delivery type ID
+	percents := make([]float64, 5)
 	for rows.Next() {
-		var percent float64
-		if err := rows.Scan(&percent); err != nil {
+		var (
+			typeID  int
+			percent float64
+		)
+		if err := rows.Scan(&typeID, &percent); err != nil {
 			mr.appLogger.Error(err)
 			return nil, err
 		}
-		percents = append(percents, percent)
+
+		// Change value if such delivery type was presented in the database per last 24 hours
+		percents[typeID-1] = percent
 	}
 
 	// Attach calculated percents to response body's fields respectively
