@@ -125,14 +125,27 @@ func (ur *UserRepo) UnbanUser(ctx context.Context, id int) error {
 // GetUserByID fetches user's account data from the database and returns it
 func (ur *UserRepo) GetUserByID(ctx context.Context, id int) (*dto.UserMeResponse, error) {
 	query := `
-		SELECT id, surname, name, email, phone_number, created_at
-		FROM users
-		WHERE id=$1
+		SELECT users.id, surname, name, email, phone_number, created_at, is_admin, is_courier, is_banned
+		FROM users INNER JOIN meta ON users.id = meta.user_id
+		WHERE users.id=$1
 	`
 	row := ur.QueryRowContext(ctx, query, id)
 
-	resp := &dto.UserMeResponse{}
-	err := row.Scan(&resp.ID, &resp.Surname, &resp.Name, &resp.Email, &resp.PhoneNumber, &resp.CreatedAt)
+	resp := &dto.UserMeResponse{
+		Meta: &dto.RoleMeta{},
+	}
+
+	err := row.Scan(
+		&resp.ID,
+		&resp.Surname,
+		&resp.Name,
+		&resp.Email,
+		&resp.PhoneNumber,
+		&resp.CreatedAt,
+		&resp.Meta.IsAdmin,
+		&resp.Meta.IsCourier,
+		&resp.Meta.IsBanned,
+	)
 	if err != nil {
 		ur.appLogger.Error(err)
 		return nil, err

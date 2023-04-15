@@ -28,7 +28,7 @@ func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m *middleware.
 
 	userGroup := superGroup.Group("/user")
 	{
-		userGroup.GET("/me", m.RequireAuth, m.RequireNoBan, handler.me)
+		userGroup.GET("/me", m.RequireAuth, handler.me)
 		userGroup.POST("/signup", handler.signUp)
 		userGroup.POST("/login", handler.login)
 		userGroup.POST("/:id/ban", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.ban)
@@ -60,6 +60,7 @@ func (h *userHandlers) me(c *gin.Context) {
 		Email:       user.Email,
 		PhoneNumber: user.PhoneNumber,
 		CreatedAt:   user.CreatedAt,
+		Meta:        user.Meta,
 	}
 	c.JSON(http.StatusOK, resp)
 }

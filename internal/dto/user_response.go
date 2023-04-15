@@ -2,6 +2,14 @@ package dto
 
 import "time"
 
+// RoleMeta represents struct
+// with meta data about user's role
+type RoleMeta struct {
+	IsAdmin   bool `json:"is_admin"`
+	IsCourier bool `json:"is_courier"`
+	IsBanned  bool `json:"is_banned"`
+}
+
 // UserMeResponse represents the response body
 // with user's account data sent to the user by API
 type UserMeResponse struct {
@@ -11,6 +19,7 @@ type UserMeResponse struct {
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number"`
 	CreatedAt   time.Time `json:"created_at"`
+	Meta        *RoleMeta `json:"meta"`
 }
 
 // UserInfoResponse represents the response body
