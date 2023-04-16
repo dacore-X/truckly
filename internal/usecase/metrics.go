@@ -44,7 +44,7 @@ func (uc *MetricsUseCase) GetMetrics(ctx context.Context) (*dto.MetricsPerDayRes
 	}
 
 	// Attach revenue sum per last 24 hours metric to response
-	resp.Revenue = secondMetric.Revenue
+	resp.Revenue = secondMetric
 
 	// Get new registered clients' count per last 24 hours
 	thirdMetric, err := uc.repo.GetNewClientsCntPerDay(context.Background())
@@ -54,7 +54,7 @@ func (uc *MetricsUseCase) GetMetrics(ctx context.Context) (*dto.MetricsPerDayRes
 	}
 
 	// Attach new registered clients' count per last 24 hours metric to response
-	resp.NewClientsCnt = thirdMetric.NewClientsCnt
+	resp.NewClientsCnt = thirdMetric
 
 	// Get different delivery types' percentages per last 24 hours
 	fourthMetric, err := uc.repo.GetDeliveryTypesPercentPerDay(context.Background())

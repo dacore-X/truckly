@@ -2,21 +2,29 @@ package dto
 
 // DeliveriesCntPerDay represents the response body
 // with new and completed deliveries' counts per last 24 hours
+// and differences in percents between previous and current day
+// for corresponding values
 type DeliveriesCntPerDay struct {
-	NewCnt       int `json:"new_cnt"`
-	CompletedCnt int `json:"completed_cnt"`
+	NewCnt           int     `json:"new_cnt"`
+	NewCntDiff       float64 `json:"new_cnt_diff"`
+	CompletedCnt     int     `json:"completed_cnt"`
+	CompletedCntDiff float64 `json:"completed_cnt_diff"`
 }
 
 // RevenuePerDay represents the response body
-// with revenue sum per last 24 hours
+// with revenue sum per last 24 hours and difference
+// in percents between previous and current day for revenue
 type RevenuePerDay struct {
-	Revenue int `json:"revenue"`
+	Revenue     int     `json:"revenue"`
+	RevenueDiff float64 `json:"revenue_diff"`
 }
 
 // NewClientsCntPerDay represents the response body
-// with new registered clients' count per last 24 hours
+// with new registered clients' count per last 24 hours and difference
+// in percents between previous and current day for new registered clients' count
 type NewClientsCntPerDay struct {
-	NewClientsCnt int `json:"new_clients_cnt"`
+	NewClientsCnt     int     `json:"new_clients_cnt"`
+	NewClientsCntDiff float64 `json:"new_clients_cnt_diff"`
 }
 
 // DeliveryTypesPercentPerDay represents the response body
@@ -33,8 +41,8 @@ type DeliveryTypesPercentPerDay struct {
 // with all metrics per last 24 hours
 type MetricsPerDayResponse struct {
 	DeliveriesCnt        *DeliveriesCntPerDay        `json:"deliveries_cnt"`
-	Revenue              int                         `json:"revenue"`
-	NewClientsCnt        int                         `json:"new_clients_cnt"`
+	Revenue              *RevenuePerDay              `json:"revenue"`
+	NewClientsCnt        *NewClientsCntPerDay        `json:"new_clients_cnt"`
 	DeliveryTypesPercent *DeliveryTypesPercentPerDay `json:"delivery_types_percent"`
 }
 
