@@ -31,6 +31,7 @@ func newUserHandlers(superGroup *gin.RouterGroup, u usecase.User, m *middleware.
 		userGroup.GET("/me", m.RequireAuth, m.RequireNoBan, handler.me)
 		userGroup.POST("/signup", handler.signUp)
 		userGroup.POST("/login", handler.login)
+		userGroup.POST("/logout", m.RequireAuth, handler.logout)
 		userGroup.POST("/:id/ban", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.ban)
 		userGroup.POST("/:id/unban", m.RequireAuth, m.RequireNoBan, m.RequireAdmin, handler.unban)
 	}
@@ -233,5 +234,15 @@ func (h *userHandlers) unban(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"msg": fmt.Sprintf("user %v has been successfully unbanned", req.ID),
+	})
+}
+
+func (h *userHandlers) logout(c *gin.Context) {
+	// Send it back
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", "", -1, "", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "logout is complete",
 	})
 }
