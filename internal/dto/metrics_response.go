@@ -49,8 +49,8 @@ type MetricsPerDayResponse struct {
 // CurrentDeliveries represents the response body
 // with brief information about current delivery
 type CurrentDelivery struct {
-	FromPoint *PointResponse `json:"from_point"`
-	Price     float64        `json:"price"`
+	FromObject *GeoObjectResponse `json:"from_object"`
+	Price      float64            `json:"price"`
 }
 
 // MetricsDeliveriesResponse represents the response body
