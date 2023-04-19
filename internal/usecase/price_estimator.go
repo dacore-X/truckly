@@ -42,7 +42,7 @@ func (uc *PriceEstimatorUseCase) EstimateDeliveryPrice(ctx context.Context, req 
 		TypeID:    req.TypeID,
 		HasLoader: req.HasLoader,
 		Time:      time.Now(),
-		Distance:  distance / 1000, // in km
+		Distance:  distance, // in m
 	}
 	price, err := uc.service.EstimateDeliveryPrice(body)
 	if err != nil {
