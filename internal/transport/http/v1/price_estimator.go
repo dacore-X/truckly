@@ -21,7 +21,7 @@ func newPriceEstimatorHandlers(superGroup *gin.RouterGroup, u usecase.PriceEstim
 
 	priceEstimatorGroup := superGroup.Group("/price")
 	{
-		priceEstimatorGroup.POST("/", m.RequireAuth, m.RequireNoBan, handler.estimatePrice)
+		priceEstimatorGroup.POST("/predict", m.RequireAuth, m.RequireNoBan, handler.estimatePrice)
 	}
 }
 
