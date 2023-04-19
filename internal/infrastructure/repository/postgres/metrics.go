@@ -94,7 +94,7 @@ func (mr *MetricsRepo) GetDeliveriesCntPerDay(ctx context.Context) (*dto.Deliver
 	if newYesterdayCnt != 0 {
 		newCntDiff := float64(resp.NewCnt-newYesterdayCnt) * 100 / float64(newYesterdayCnt)
 		resp.NewCntDiff = math.Round(newCntDiff*10) / 10
-	} else if newYesterdayCnt+resp.CompletedCnt == 0 {
+	} else if newYesterdayCnt+resp.NewCnt == 0 {
 		resp.NewCntDiff = 0.0 // If both days' count is zero then difference is 0%
 	} else if newYesterdayCnt == 0 {
 		resp.NewCntDiff = 100.0 // If yesterday's count is zero then difference is 100%
@@ -158,6 +158,7 @@ func (mr *MetricsRepo) GetRevenuePerDay(ctx context.Context) (*dto.RevenuePerDay
 		SELECT COALESCE(SUM(price), 0) AS sum
 		FROM deliveries
 		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400
+			AND status_id = 3
 	`
 
 	// Revenue sum per last 24 hours
@@ -177,6 +178,7 @@ func (mr *MetricsRepo) GetRevenuePerDay(ctx context.Context) (*dto.RevenuePerDay
 		FROM deliveries
 		WHERE EXTRACT(EPOCH FROM (NOW() - created_at)) >= 86400
 			AND EXTRACT(EPOCH FROM (NOW() - created_at)) < 86400 * 2
+			AND status_id = 3
 	`
 
 	// Revenue sum per previous 24 hours
