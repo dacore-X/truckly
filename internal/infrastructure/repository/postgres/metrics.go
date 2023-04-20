@@ -332,7 +332,7 @@ func (mr *MetricsRepo) GetDeliveryTypesPercentPerDay(ctx context.Context) (*dto.
 // from the database and returns it
 func (mr *MetricsRepo) GetCurrentDeliveries(context.Context) (*dto.MetricsDeliveriesResponse, error) {
 	query := `
-		SELECT from_object, from_longitude, from_latitude, price
+		SELECT from_object, from_longitude, from_latitude, to_object, price
 		FROM deliveries INNER JOIN geo ON deliveries.geo_id = geo.id
 		WHERE status_id = 1
 	`
@@ -349,7 +349,7 @@ func (mr *MetricsRepo) GetCurrentDeliveries(context.Context) (*dto.MetricsDelive
 		info := &dto.CurrentDelivery{
 			FromObject: &dto.GeoObjectResponse{},
 		}
-		if err := rows.Scan(&info.FromObject.Object, &info.FromObject.Latitude, &info.FromObject.Longitude, &info.Price); err != nil {
+		if err := rows.Scan(&info.FromObject.Object, &info.FromObject.Longitude, &info.FromObject.Latitude, &info.ToObject, &info.Price); err != nil {
 			mr.appLogger.Error(err)
 			return nil, err
 		}

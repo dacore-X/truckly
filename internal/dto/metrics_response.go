@@ -50,6 +50,7 @@ type MetricsPerDayResponse struct {
 // with brief information about current delivery
 type CurrentDelivery struct {
 	FromObject *GeoObjectResponse `json:"from_object"`
+	ToObject   string             `json:"to_object"`
 	Price      float64            `json:"price"`
 }
 
