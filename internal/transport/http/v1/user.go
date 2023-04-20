@@ -173,7 +173,7 @@ func (h *userHandlers) login(c *gin.Context) {
 
 	// Send it back
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600, "", "", false, true)
+	c.SetCookie("Authorization", tokenString, 60*60*24*7, "", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "authorization is complete",
