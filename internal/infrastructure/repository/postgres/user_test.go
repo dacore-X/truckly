@@ -373,8 +373,8 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			name: "user is found",
 			args: args{
 				id: 1,
-				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at"}).
-					AddRow(1, "Иванов", "Иван", "ivanov@yandex.ru", "89157650030", now),
+				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at", "is_admin", "is_courier", "is_banned"}).
+					AddRow(1, "Иванов", "Иван", "ivanov@yandex.ru", "89157650030", now, false, false, false),
 			},
 			want: &dto.UserMeResponse{
 				ID:          1,
@@ -383,14 +383,19 @@ func TestPostgres_GetUserByID(t *testing.T) {
 				Email:       "ivanov@yandex.ru",
 				PhoneNumber: "89157650030",
 				CreatedAt:   now,
+				Meta: &dto.RoleMeta{
+					IsAdmin:   false,
+					IsCourier: false,
+					IsBanned:  false,
+				},
 			},
 		},
 		{
 			name: "user is not found",
 			args: args{
 				id: 2,
-				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at"}).
-					AddRow(nil, nil, nil, nil, nil, nil),
+				rows: sqlmock.NewRows([]string{"id", "surname", "name", "email", "phone_number", "created_at", "is_admin", "is_courier", "is_banned"}).
+					AddRow(nil, nil, nil, nil, nil, nil, nil, nil, nil),
 			},
 			wantErr: sql.ErrNoRows,
 		},
@@ -402,9 +407,9 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			// Expect query to fetch user's account data and
 			// either return error or not, match it with regexp
 			mock.ExpectQuery(regexp.QuoteMeta(`
-				SELECT id, surname, name, email, phone_number, created_at
-				FROM users
-				WHERE id=$1
+				SELECT users.id, surname, name, email, phone_number, created_at, is_admin, is_courier, is_banned
+				FROM users INNER JOIN meta ON users.id = meta.user_id
+				WHERE users.id=$1
 			`)).
 				WithArgs(tc.args.id).
 				WillReturnRows(tc.args.rows).

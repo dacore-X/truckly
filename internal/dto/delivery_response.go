@@ -34,7 +34,8 @@ type GeoObjectResponse struct {
 }
 
 type DeliveryCourierInfo struct {
-	Name        string  `json:"name"`
-	PhoneNumber string  `json:"phone_number"`
-	Rating      float64 `json:"rating"`
+	Name        string    `json:"name"`
+	PhoneNumber string    `json:"phone_number"`
+	Rating      float64   `json:"rating"`
+	CreatedAt   time.Time `json:"created_at"`
 }
