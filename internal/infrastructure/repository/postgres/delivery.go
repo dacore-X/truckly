@@ -77,7 +77,7 @@ func (dr *DeliveryRepo) GetDeliveryByID(ctx context.Context, clientID, deliveryI
 	query := `
 		SELECT deliveries.id, type_id, courier_id, status_id, price, has_loader,
        	geo.from_latitude, geo.from_longitude, geo.from_object, geo.to_latitude, geo.to_longitude, geo.to_object,
-       geo.distance, deliveries.created_at
+       	geo.distance, deliveries.created_at
 		FROM deliveries
 		INNER JOIN geo ON deliveries.geo_id = geo.id
 		WHERE (client_id = $1 OR courier_id = $1 OR $1 IN (
@@ -87,7 +87,7 @@ func (dr *DeliveryRepo) GetDeliveryByID(ctx context.Context, clientID, deliveryI
 		)) AND deliveries.id = $2`
 
 	queryCourier := `
-		SELECT name, phone_number, rating 
+		SELECT name, phone_number, rating, created_at
 		FROM users INNER JOIN meta
 		ON users.id = meta.user_id
 		WHERE users.id = $1`
@@ -112,7 +112,7 @@ func (dr *DeliveryRepo) GetDeliveryByID(ctx context.Context, clientID, deliveryI
 
 	if courierID.Valid {
 		row = dr.QueryRowContext(ctx, queryCourier, courierID.Int64)
-		err = row.Scan(&response.Courier.Name, &response.Courier.PhoneNumber, &response.Courier.Rating)
+		err = row.Scan(&response.Courier.Name, &response.Courier.PhoneNumber, &response.Courier.Rating, &response.Courier.CreatedAt)
 		if err != nil {
 			dr.appLogger.Error(err)
 			return nil, err
