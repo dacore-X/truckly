@@ -39,6 +39,7 @@ func Run(cfg *config.Config) {
 	options := redishelper.GetOptions(cfg.REDIS)
 
 	rdb := redis.NewClient(options)
+	defer rdb.Close()
 
 	// Use cases
 	userUseCase := usecase.NewUserUseCase(
@@ -68,12 +69,12 @@ func Run(cfg *config.Config) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	h := v1.NewHandlers(
-		userUseCase, 
-		deliveryUseCase, 
-		metricsUseCase, 
-		geoUseCase, 
+		userUseCase,
+		deliveryUseCase,
+		metricsUseCase,
+		geoUseCase,
 		priceEstimatorUseCase,
-		appLogger, 
+		appLogger,
 		rdb,
 	)
 	h.NewRouter(r)

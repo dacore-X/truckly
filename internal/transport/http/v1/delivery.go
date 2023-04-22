@@ -27,7 +27,7 @@ func newDeliveryHandlers(superGroup *gin.RouterGroup, u usecase.Delivery, m *mid
 		deliveryGroup.GET("/", m.RequireAuth, m.RequireNoBan, m.RequireCourier, handler.getDeliveriesByCourierID)
 		deliveryGroup.GET("/:id", m.RequireAuth, m.RequireNoBan, handler.getDeliveryByID)
 		deliveryGroup.GET("/my", m.RequireAuth, m.RequireNoBan, handler.getDeliveriesByClientID)
-		deliveryGroup.POST("/", m.RequireAuth, m.RequireNoBan, handler.createDelivery)
+		deliveryGroup.POST("/", m.RequireAuth, m.RequireNoBan, m.RateLimit, handler.createDelivery)
 		deliveryGroup.POST("/:id/accept", m.RequireAuth, m.RequireNoBan, m.RequireCourier, handler.acceptDelivery)
 		deliveryGroup.POST("/:id/status", m.RequireAuth, m.RequireNoBan, m.RequireCourier, handler.changeDeliveryStatus)
 	}
