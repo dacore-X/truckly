@@ -40,12 +40,21 @@ type SERVICES struct {
 	Ports map[string]int
 }
 
+// REDIS is a struct for storing Redis connection settings
+type REDIS struct {
+	RedisHost     string
+	RedisPort     string
+	RedisPassword string
+	RedisDB       int
+}
+
 // Config is a struct for storing all required configuration parameters
 type Config struct {
 	*PG
 	*GEO
 	*SERVICES
 	*LOG
+	*REDIS
 }
 
 // New returns application config
@@ -60,7 +69,7 @@ func New() (*Config, error) {
 		return nil, errors.New("POSTGRES_USER is not set")
 	}
 
-	password, ok := os.LookupEnv("POSTGRES_PASSWORD")
+	pgPassword, ok := os.LookupEnv("POSTGRES_PASSWORD")
 	if !ok {
 		return nil, errors.New("POSTGRES_PASSWORD is not set")
 	}
@@ -70,7 +79,7 @@ func New() (*Config, error) {
 		return nil, errors.New("POSTGRES_NAME is not set")
 	}
 
-	port, ok := os.LookupEnv("POSTGRES_PORT")
+	pgPort, ok := os.LookupEnv("POSTGRES_PORT")
 	if !ok {
 		return nil, errors.New("POSTGRES_PORT is not set")
 	}
@@ -110,12 +119,37 @@ func New() (*Config, error) {
 	}
 	priceEstimatorPort, _ := strconv.Atoi(port2)
 
+	host, ok := os.LookupEnv("REDIS_HOST")
+	if !ok {
+		return nil, errors.New("REDIS_HOST is not set")
+	}
+
+	redisPort, ok := os.LookupEnv("REDIS_PORT")
+	if !ok {
+		return nil, errors.New("REDIS_PORT is not set")
+	}
+
+	redisPassword, ok := os.LookupEnv("REDIS_PASSWORD")
+	if !ok {
+		return nil, errors.New("REDIS_PASSWORD is not set")
+	}
+
+	dbStr, ok := os.LookupEnv("REDIS_DB")
+	if !ok {
+		return nil, errors.New("REDIS_DB is not set")
+	}
+
+	db, err := convEnvToInt(dbStr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		PG: &PG{
 			PostgresUser:     user,
-			PostgresPassword: password,
+			PostgresPassword: pgPassword,
 			PostgresName:     name,
-			PostgresPort:     port,
+			PostgresPort:     pgPort,
 		},
 		GEO: &GEO{
 			APIKeyCatalog: apiKeyCatalog,
@@ -163,5 +197,20 @@ func New() (*Config, error) {
 				},
 			},
 		},
+		REDIS: &REDIS{
+			RedisHost:     host,
+			RedisPort:     redisPort,
+			RedisPassword: redisPassword,
+			RedisDB:       db,
+		},
 	}, nil
+}
+
+// convEnvToInt converts received environmental variable to int
+func convEnvToInt(env string) (int, error) {
+	v, err := strconv.Atoi(env)
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
 }

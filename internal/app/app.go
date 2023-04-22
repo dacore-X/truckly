@@ -6,8 +6,10 @@ import (
 	"github.com/dacore-x/truckly/config"
 	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/dacore-x/truckly/pkg/pghelper"
+	"github.com/dacore-x/truckly/pkg/redishelper"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 
 	"github.com/dacore-x/truckly/internal/infrastructure/microservice"
@@ -32,6 +34,11 @@ func Run(cfg *config.Config) {
 		appLogger.Fatal(err)
 	}
 	defer conn.Close()
+
+	// Redis
+	options := redishelper.GetOptions(cfg.REDIS)
+
+	rdb := redis.NewClient(options)
 
 	// Use cases
 	userUseCase := usecase.NewUserUseCase(
@@ -60,7 +67,15 @@ func Run(cfg *config.Config) {
 	// Create HTTP server using Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	h := v1.NewHandlers(userUseCase, deliveryUseCase, metricsUseCase, geoUseCase, priceEstimatorUseCase, appLogger)
+	h := v1.NewHandlers(
+		userUseCase, 
+		deliveryUseCase, 
+		metricsUseCase, 
+		geoUseCase, 
+		priceEstimatorUseCase,
+		appLogger, 
+		rdb,
+	)
 	h.NewRouter(r)
 
 	// Log all running services ports
