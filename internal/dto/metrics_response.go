@@ -46,7 +46,7 @@ type MetricsPerDayResponse struct {
 	DeliveryTypesPercent *DeliveryTypesPercentPerDay `json:"delivery_types_percent"`
 }
 
-// CurrentDeliveries represents the response body
+// CurrentDelivery represents the response body
 // with brief information about current delivery
 type CurrentDelivery struct {
 	FromObject *GeoObjectResponse `json:"from_object"`
