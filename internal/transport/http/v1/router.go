@@ -1,10 +1,12 @@
 package v1
 
 import (
-	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
-	"github.com/dacore-x/truckly/internal/usecase"
 	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+
+	"github.com/dacore-x/truckly/internal/transport/http/v1/middleware"
+	"github.com/dacore-x/truckly/internal/usecase"
 )
 
 // Handlers is a struct that provides
@@ -25,6 +27,7 @@ func NewHandlers(
 	g usecase.Geo,
 	p usecase.PriceEstimator,
 	l *logger.Logger,
+	rdb *redis.Client,
 ) *Handlers {
 	return &Handlers{
 		userHandlers{u},
@@ -32,7 +35,7 @@ func NewHandlers(
 		metricsHandlers{m},
 		geoHandlers{g},
 		priceEstimatorHandlers{p},
-		middleware.New(u, l),
+		middleware.New(u, l, rdb),
 	}
 }
 

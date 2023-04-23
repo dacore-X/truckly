@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/dacore-x/truckly/pkg/logger"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/dacore-x/truckly/internal/usecase"
 )
@@ -11,11 +12,13 @@ import (
 type Middlewares struct {
 	userMiddlewares
 	loggerMiddlewares
+	redisMiddlewares
 }
 
-func New(u usecase.User, l *logger.Logger) *Middlewares {
+func New(u usecase.User, l *logger.Logger, rdb *redis.Client) *Middlewares {
 	return &Middlewares{
 		userMiddlewares{u},
 		loggerMiddlewares{l},
+		redisMiddlewares{rdb},
 	}
 }

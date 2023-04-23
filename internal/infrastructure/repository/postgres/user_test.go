@@ -400,7 +400,7 @@ func TestPostgres_GetUserByID(t *testing.T) {
 			wantErr: sql.ErrNoRows,
 		},
 	}
-
+	
 	// Run tests
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
