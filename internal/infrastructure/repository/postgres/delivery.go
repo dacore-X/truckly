@@ -243,6 +243,7 @@ func (dr *DeliveryRepo) GetDeliveriesByClientID(ctx context.Context, clientID in
 	SELECT deliveries.id, type_id, has_loader, status_id, price, geo.from_object, geo.to_object, geo.distance, created_at
 	FROM deliveries INNER JOIN geo ON deliveries.geo_id = geo.id
 	WHERE client_id = $1
+	ORDER BY deliveries.id DESC
 	LIMIT 10 OFFSET $2
 	`
 
@@ -283,6 +284,7 @@ func (dr *DeliveryRepo) GetDeliveriesByCourierID(ctx context.Context, courierID 
 	SELECT deliveries.id, type_id, has_loader, status_id, price, geo.from_object, geo.to_object, geo.distance, created_at
 	FROM deliveries INNER JOIN geo ON deliveries.geo_id = geo.id
 	WHERE courier_id = $1
+	ORDER BY deliveries.id DESC
 	LIMIT 10 OFFSET $2
 	`
 
