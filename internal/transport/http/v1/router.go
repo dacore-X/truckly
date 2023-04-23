@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/dacore-x/truckly/pkg/logger"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
@@ -44,13 +43,6 @@ func NewHandlers(
 func (h *Handlers) NewRouter(r *gin.Engine) {
 	r.Use(h.DefaultLogger())
 	r.Use(gin.Recovery())
-	config := cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET, POST, PUT, DELETE, HEAD, OPTIONS"},
-		AllowHeaders:     []string{"Origin, X-Requested-With, Content-Type, Accept, Authorization"},
-		AllowCredentials: true,
-	})
-	r.Use(config)
 	superGroup := r.Group("/api")
 	{
 		newUserHandlers(superGroup, h.userHandlers, h.Middlewares)

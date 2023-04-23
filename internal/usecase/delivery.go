@@ -95,7 +95,7 @@ func (uc *DeliveryUseCase) CreateDelivery(ctx context.Context, delivery *entity.
 		TypeID:    delivery.TypeID,
 		HasLoader: delivery.HasLoader,
 		Time:      time.Now(),
-		Distance:  distResponse.Distance / 1000, // in km
+		Distance:  distResponse.Distance, // in m
 	}
 	price, err := uc.service.EstimateDeliveryPrice(body)
 	if err != nil {

@@ -2,11 +2,12 @@ package app
 
 import (
 	"database/sql"
-
 	"github.com/dacore-x/truckly/config"
 	"github.com/dacore-x/truckly/pkg/logger"
 	"github.com/dacore-x/truckly/pkg/pghelper"
 	"github.com/dacore-x/truckly/pkg/redishelper"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
@@ -68,6 +69,13 @@ func Run(cfg *config.Config) {
 	// Create HTTP server using Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
+
+	// Setting cors settings
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowCredentials = true
+	r.Use(cors.New(corsConfig))
+
 	h := v1.NewHandlers(
 		userUseCase,
 		deliveryUseCase,
