@@ -208,27 +208,6 @@ func (dr *DeliveryRepo) ChangeDeliveryStatus(ctx context.Context, statusID, deli
 	return nil
 }
 
-func (dr *DeliveryRepo) CancelDelivery(ctx context.Context, deliveryID int) error {
-	query := `UPDATE deliveries SET status_id = 4 WHERE id = $1`
-	result, err := dr.ExecContext(ctx, query, deliveryID)
-	if err != nil {
-		dr.appLogger.Error(err)
-		return err
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		dr.appLogger.Error(err)
-		return err
-	}
-
-	if rows != 1 {
-		err = fmt.Errorf("error canceling delivery order")
-		dr.appLogger.Error(err)
-		return err
-	}
-	return nil
-}
-
 func (dr *DeliveryRepo) GetDeliveriesByGeolocation(ctx context.Context, q *dto.DeliveryListGeolocationQuery, searchD float64) ([]*dto.DeliveryBriefResponse, error) {
 	query := `
 	SELECT deliveries.id, type_id, has_loader, status_id, price, geo.from_object, geo.to_object, geo.distance, created_at

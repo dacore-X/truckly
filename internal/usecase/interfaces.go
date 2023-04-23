@@ -53,8 +53,7 @@ type (
 		GetActiveDeliveryAmount(ctx context.Context, courierID int) (int, error)
 		IsDeliveryPerformer(ctx context.Context, courierID, deliveryID int) (bool, error)
 		IsDeliveryOwner(ctx context.Context, courierID, deliveryID int) (bool, error)
-		ChangeDeliveryStatus(ctx context.Context, deliveryID, statusID int) error
-		CancelDelivery(ctx context.Context, deliveryID int) error
+		ChangeDeliveryStatus(ctx context.Context, statusID, deliveryID int) error
 	}
 
 	// Metrics interface represents metrics usecases

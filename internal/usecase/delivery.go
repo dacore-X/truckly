@@ -181,7 +181,7 @@ func (uc *DeliveryUseCase) CancelDelivery(ctx context.Context, clientID, deliver
 		return err
 	}
 
-	err = uc.repo.CancelDelivery(ctx, deliveryID)
+	err = uc.repo.ChangeDeliveryStatus(ctx, 4, deliveryID)
 	if err != nil {
 		uc.appLogger.Error(err)
 		return err
