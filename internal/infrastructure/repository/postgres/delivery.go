@@ -171,6 +171,22 @@ func (dr *DeliveryRepo) IsDeliveryPerformer(ctx context.Context, courierID, deli
 	return true, nil
 }
 
+func (dr *DeliveryRepo) IsDeliveryOwner(ctx context.Context, clientID, deliveryID int) (bool, error) {
+	query := `SELECT COUNT(id) FROM deliveries WHERE client_id = $1 AND id = $2`
+	var amount int
+	row := dr.QueryRowContext(ctx, query, clientID, deliveryID)
+	err := row.Scan(&amount)
+	if err != nil {
+		dr.appLogger.Error(err)
+		return false, err
+	}
+
+	if amount != 1 {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (dr *DeliveryRepo) ChangeDeliveryStatus(ctx context.Context, statusID, deliveryID int) error {
 	query := `UPDATE deliveries SET status_id = $1 WHERE id = $2`
 	result, err := dr.ExecContext(ctx, query, statusID, deliveryID)
@@ -186,6 +202,27 @@ func (dr *DeliveryRepo) ChangeDeliveryStatus(ctx context.Context, statusID, deli
 
 	if rows != 1 {
 		err = fmt.Errorf("error changing status")
+		dr.appLogger.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (dr *DeliveryRepo) CancelDelivery(ctx context.Context, deliveryID int) error {
+	query := `UPDATE deliveries SET status_id = 4 WHERE id = $1`
+	result, err := dr.ExecContext(ctx, query, deliveryID)
+	if err != nil {
+		dr.appLogger.Error(err)
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		dr.appLogger.Error(err)
+		return err
+	}
+
+	if rows != 1 {
+		err = fmt.Errorf("error canceling delivery order")
 		dr.appLogger.Error(err)
 		return err
 	}

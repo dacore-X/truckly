@@ -39,6 +39,7 @@ type (
 		GetDeliveriesByCourierID(ctx context.Context, courierID int, page int) ([]*dto.DeliveryBriefResponse, error)
 		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
 		ChangeDeliveryStatus(ctx context.Context, courierID, deliveryID, statusID int) error
+		CancelDelivery(ctx context.Context, clientID, deliveryID int) error
 	}
 
 	// DeliveryRepo interface represents delivery's repository contract
@@ -51,7 +52,9 @@ type (
 		AcceptDelivery(ctx context.Context, courierID int, deliveryID int) error
 		GetActiveDeliveryAmount(ctx context.Context, courierID int) (int, error)
 		IsDeliveryPerformer(ctx context.Context, courierID, deliveryID int) (bool, error)
+		IsDeliveryOwner(ctx context.Context, courierID, deliveryID int) (bool, error)
 		ChangeDeliveryStatus(ctx context.Context, deliveryID, statusID int) error
+		CancelDelivery(ctx context.Context, deliveryID int) error
 	}
 
 	// Metrics interface represents metrics usecases

@@ -29,6 +29,7 @@ func newDeliveryHandlers(superGroup *gin.RouterGroup, u usecase.Delivery, m *mid
 		deliveryGroup.GET("/my", m.RequireAuth, m.RequireNoBan, handler.getDeliveriesByClientID)
 		deliveryGroup.POST("/", m.RequireAuth, m.RequireNoBan, m.RateLimit, handler.createDelivery)
 		deliveryGroup.POST("/:id/accept", m.RequireAuth, m.RequireNoBan, m.RequireCourier, handler.acceptDelivery)
+		deliveryGroup.POST("/:id/cancel", m.RequireAuth, m.RequireNoBan, handler.cancelDelivery)
 		deliveryGroup.POST("/:id/status", m.RequireAuth, m.RequireNoBan, m.RequireCourier, handler.changeDeliveryStatus)
 	}
 }
@@ -150,6 +151,33 @@ func (h *deliveryHandlers) changeDeliveryStatus(c *gin.Context) {
 
 	courierID := c.GetInt("user")
 	err := h.ChangeDeliveryStatus(context.Background(), courierID, req.ID, body.StatusID)
+	if err != nil {
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "delivery status is changed",
+	})
+}
+
+func (h *deliveryHandlers) cancelDelivery(c *gin.Context) {
+	// Get id of delivery from request
+	var req dto.DeliveryIdURI
+	if c.ShouldBindUri(&req) != nil {
+		err := fmt.Errorf("failed to read uri")
+		c.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	clientID := c.GetInt("user")
+	err := h.CancelDelivery(context.Background(), clientID, req.ID)
 	if err != nil {
 		c.Error(err)
 		c.JSON(http.StatusBadRequest, gin.H{

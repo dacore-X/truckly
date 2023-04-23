@@ -168,6 +168,27 @@ func (uc *DeliveryUseCase) ChangeDeliveryStatus(ctx context.Context, courierID, 
 	return nil
 }
 
+func (uc *DeliveryUseCase) CancelDelivery(ctx context.Context, clientID, deliveryID int) error {
+	ok, err := uc.repo.IsDeliveryOwner(ctx, clientID, deliveryID)
+	if err != nil {
+		uc.appLogger.Error(err)
+		return err
+	}
+
+	if !ok {
+		err = fmt.Errorf("user is not delivery owner")
+		uc.appLogger.Error(err)
+		return err
+	}
+
+	err = uc.repo.CancelDelivery(ctx, deliveryID)
+	if err != nil {
+		uc.appLogger.Error(err)
+		return err
+	}
+	return nil
+}
+
 func (uc *DeliveryUseCase) GetDeliveriesByGeolocation(ctx context.Context, query *dto.DeliveryListGeolocationQuery) ([]*dto.DeliveryBriefResponse, error) {
 	// 1 км на входящей широте = посчитанное количество градусов
 	oneKM := 1 / (111.11 * math.Cos(query.Latitude)) // degree

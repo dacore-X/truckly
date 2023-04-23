@@ -43,7 +43,7 @@ func (m *redisMiddlewares) RateLimit(c *gin.Context) {
 
 	// Check if counter exceeded the limit of requests
 	if counter > maxLimit {
-		err := fmt.Errorf("%v requests out of %v - limit reached", counter, maxLimit)
+		err := fmt.Errorf("requests limit reached")
 		c.Error(err)
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 			"error": err.Error(),
